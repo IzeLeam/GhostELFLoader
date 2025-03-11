@@ -10,7 +10,7 @@ stages:
 build:
   stage: build
   script:
-      - build.sh
+      - scripts/build.sh
   artifacts:
     name: "build_artifacts_$CI_COMMIT_SHORT_SHA"
     paths:
@@ -19,7 +19,7 @@ build:
 analyze:
   stage: analyze
   script:
-      - analyze.sh
+      - scripts/analyze.sh
   artifacts:
     name: "analyze_artifacts_$CI_COMMIT_SHORT_SHA"
     paths:
