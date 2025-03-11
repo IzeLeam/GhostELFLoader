@@ -1,6 +1,6 @@
-include Makefile
+include Makefile.config
 
-vpath %.c src
+# vpath %.c src
 
 ifndef SRC_FILES
 $(error MAKE variable SRC_FILES is not define, please define it in your Makefile.)
