@@ -16,3 +16,6 @@ SRC_FILES=./src/loader.c ./src/handler.c
 # TODO
 # Uncomment this and initialize it to the correct path(s) to your source files if your project sources are not located in `src`.
 #vpath %.c path/to/src
+
+all:
+	@echo "succes"
