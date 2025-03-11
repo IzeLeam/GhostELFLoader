@@ -1,0 +1,26 @@
+image: softsec/isos:latest
+
+# Define the stages
+stages:
+  - build
+  - analyze
+
+
+
+build:
+  stage: build
+  script:
+      - build.sh
+  artifacts:
+    name: "build_artifacts_$CI_COMMIT_SHORT_SHA"
+    paths:
+      - artifacts/
+
+analyze:
+  stage: analyze
+  script:
+      - analyze.sh
+  artifacts:
+    name: "analyze_artifacts_$CI_COMMIT_SHORT_SHA"
+    paths:
+      - artifacts/

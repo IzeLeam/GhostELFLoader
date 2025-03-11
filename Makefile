@@ -1,18 +1,43 @@
-# 
-# This Makefile is for the ISOS project and ensure compatibility with the CI.
-# Make sure to include this file in your root Makefile (i.e., at the top-level of your repository).
-#
+include Makefile
 
-# TODO
-# Initialize this variable to point to the directory holding your header if any.
-# Otherwise, the CI will consider the top-level directory.
-INCLUDE_DIR=./include
+vpath %.c src
 
-# TODO
-# Initialize this variable with a space separated list of the paths to the loader source files (not the library).
-# You can use some make native function such as wildcard if you want.
-SRC_FILES=./src/loader.c ./src/handler.c
+ifndef SRC_FILES
+$(error MAKE variable SRC_FILES is not define, please define it in your Makefile.)
+endif
 
-# TODO
-# Uncomment this and initialize it to the correct path(s) to your source files if your project sources are not located in `src`.
-#vpath %.c path/to/src
+ifndef INCLUDE_DIR
+$(warning MAKE variable INCLUDE_DIR is not define, using root of the repo.)
+$(warning Please create it in your Makefile with a value equal to the directory containing your headers if the pipeline fails.)
+INCLUDE_DIR=.
+endif
+$(info Using $(INCLUDE_DIR) as include directory.)
+
+EMPTY=
+SPACE=$(EMPTY) $(EMPTY)
+COMMA_SPACE=,$(SPACE)
+
+RED=\e[31m
+GREEN=\e[1;32m
+BLUE=\e[1;34m
+PURPLE=\e[1;35m
+END_COLOR=\e[0m
+
+GCC_CFLAGS=-O2 -Warray-bounds -Wsequence-point -Walloc-zero -Wnull-dereference -Wpointer-arith -Wcast-qual -Wcast-align=strict
+CLANG_CFLAGS= -Wall -Wextra -Wuninitialized -Wpointer-arith -Wcast-qual -Wcast-align -fPIE
+
+OBJ_FILES=$(patsubst %.c,./build_pipeline/%.o,$(notdir $(SRC_FILES)))
+ARTIFACTS_DIR=./artifacts
+TARGET=$(ARTIFACTS_DIR)/isos_loader
+
+pipeline_build: $(TARGET)
+	@echo "$(PURPLE)Project built.$(END_COLOR)"
+
+pipeline_analyze: analyze_artifacts
+	@echo "$(PURPLE)Project analyzed.$(END_COLOR)"
+
+ifdef BUILD
+include /root/include/build.make
+else ifdef ANALYZE
+include /root/include/analyze.make
+endif
