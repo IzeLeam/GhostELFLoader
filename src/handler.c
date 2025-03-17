@@ -3,7 +3,7 @@
 #include <dlfcn.h>
 
 void* my_dlopen(char* name) {
-    return dlopen(name, RTLD_NOW);
+    return dlopen(name, RTLD_LAZY);
 }
 
 void* my_dlsym(void* handle, char* func) {

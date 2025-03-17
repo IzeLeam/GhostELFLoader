@@ -1,4 +1,3 @@
-
 int import();
 
 const char* foo_exported() {
