@@ -3,3 +3,6 @@
 .vscode/
 
 doc/
+
+lib/*.so
+isos_loader

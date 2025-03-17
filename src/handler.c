@@ -6,6 +6,6 @@ void* my_dlopen(char* name) {
     return dlopen(name, RTLD_NOW);
 }
 
-int* my_dlsym(void* handle, char* func) {
+void* my_dlsym(void* handle, char* func) {
     return dlsym(handle, func);
 }
