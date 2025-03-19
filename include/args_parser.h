@@ -4,10 +4,9 @@
 
 struct arguments {
     char *file;
-    char *to_inject;
-    char *section_name;
-    char *base_addr;
-    int modify_entry;
+    int verbose;
+    int nb_functions;
+    char **functions;
 };
 
 extern error_t parse_opt(int key, char *arg, struct argp_state *state);

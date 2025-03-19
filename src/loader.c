@@ -1,27 +1,27 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <string.h>
 
 #include "foo.h"
 #include "handler.h"
 #include "args_parser.h"
-
-int import() {
-    printf("Imported function called\n");
-    return 0;
-}
+#include "elf.h"
 
 int main(int argc, char **argv) {
-    struct arguments arguments = {NULL, NULL, NULL, NULL, 0};
+    struct arguments arguments = {NULL, 0, 0, NULL};
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
-#ifdef DEBUG
-    printf("File: %s\n", arguments.file);
-    printf("To Inject: %s\n", arguments.to_inject);
-    printf("Section Name: %s\n", arguments.section_name);
-    printf("Base Address: %s\n", arguments.base_addr);
-    printf("Modify Entry: %d\n", arguments.modify_entry);
-#endif
+    if (arguments.verbose) {
+        printf("Verbose enabled\n");
+        printf("File: %s\n", arguments.file);
+        printf("Function(s):\n");
+        for (int i = 0; i < arguments.nb_functions; i++) {
+            printf("  %s\n", arguments.functions[i]);
+        }
+    }
 
     void* handle = my_dlopen(arguments.file);
     if (!handle) {
@@ -29,21 +29,25 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    const char* (*foo_exported)() = my_dlsym(handle, "foo_exported");
-    if (!foo_exported) {
-        fprintf(stderr, "Failed to find the foo_exported function\n");
-        return 1;
+    for (int i = 0; i < arguments.nb_functions; i++) {
+        char** func = &arguments.functions[i];
+        char* (*function)() = my_dlsym(handle, *func);
+        if (!function) {
+            fprintf(stderr, "Failed to find the %s function\n", *func);
+            return 1;
+        }
+        if (arguments.verbose) {
+            printf("%s() returned %s\n", *func, function());
+        }
     }
 
-    printf("foo_exported() returned %s\n", foo_exported());
-
-    const char* (*foo_imported)() = my_dlsym(handle, "foo_imported");
-    if (!foo_imported) {
-        fprintf(stderr, "Failed to find the foo_imported function\n");
-        return 1;
+    Elf64_Ehdr header;
+    parse_elf_header(arguments.file, &header);
+    
+    if (arguments.verbose) {
+        print_elf_header(&header);
     }
-
-    printf("foo_imported() returned %s\n", foo_imported());
+    check_elf_header(&header);
 
     return 0;
 }
