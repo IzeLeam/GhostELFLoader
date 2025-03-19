@@ -11,7 +11,7 @@ INCLUDE_DIR=./include
 # TODO
 # Initialize this variable with a space separated list of the paths to the loader source files (not the library).
 # You can use some make native function such as wildcard if you want.
-SRC_FILES=./src/loader.c ./src/handler.c ./src/args_parser.c
+SRC_FILES=./src/loader.c ./src/handler.c ./src/args_parser.c ./src/elf.c
 OBJ_FILES=$(SRC_FILES:.c=.o)
 
 # TODO
