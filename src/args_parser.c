@@ -6,7 +6,7 @@ static char doc[] = "isos_loader -- Dynamic ELF loader";
 static char args_doc[] = "FILE FUNCTION...";
 
 static struct argp_option options[] = {
-    {"verbose", 'v', 0, 0, "Produce verbose output"},
+    {"verbose", 'v', 0, 0, "Verbose output"},
     { 0 }
 };
 
