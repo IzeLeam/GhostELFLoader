@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
 
     void* handle = my_dlopen(arguments.file);
     if (!handle) {
-        fprintf(stderr, "Failed to load the shared library\n");
+        dprintf(STDERR_FILENO, "Failed to load the shared library\n");
         return 1;
     }
 
@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
         char** func = &arguments.functions[i];
         char* (*function)() = my_dlsym(handle, *func);
         if (!function) {
-            fprintf(stderr, "Failed to find the %s function\n", *func);
+            dprintf(STDERR_FILENO, "Failed to find the %s function\n", *func);
             return 1;
         }
         if (arguments.verbose) {
@@ -43,11 +43,9 @@ int main(int argc, char **argv) {
 
     Elf64_Ehdr header;
     parse_elf_header(arguments.file, &header);
-    
-    if (arguments.verbose) {
-        print_elf_header(&header);
-    }
-    check_elf_header(&header);
+
+    Elf64_Phdr** pheaders = malloc(sizeof(Elf64_Phdr*));
+    int nb_load = parse_program_headers(arguments.file, &header, pheaders);
 
     return 0;
 }

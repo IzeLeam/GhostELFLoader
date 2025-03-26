@@ -2,13 +2,28 @@
 
 #include <stdint.h>
 
-#define EI_NIDENT 16
+#define EI_NIDENT   16
+#define ELFCLASS64	2
+#define ET_DYN		  3
+
+#define EI_MAG0		0		/* File identification byte 0 index */
+#define ELFMAG0		0x7f		/* Magic number byte 0 */
+#define EI_MAG1		1		/* File identification byte 1 index */
+#define ELFMAG1		'E'		/* Magic number byte 1 */
+#define EI_MAG2		2		/* File identification byte 2 index */
+#define ELFMAG2		'L'		/* Magic number byte 2 */
+#define EI_MAG3		3		/* File identification byte 3 index */
+#define ELFMAG3		'F'		/* Magic number byte 3 */
+
+#define PT_LOAD     1
 
 typedef __uint16_t Elf64_Half;
 typedef __uint32_t Elf64_Word;
 typedef __uint64_t Elf64_Addr;
 typedef __uint64_t Elf64_Off;
+typedef __uint64_t Elf64_Xword;
 
+// ELF header
 typedef struct {
     unsigned char   e_ident[EI_NIDENT]; /* Magic number and other info          */
     Elf64_Half      e_type;             /* Object file type                     */
@@ -26,8 +41,18 @@ typedef struct {
     Elf64_Half      e_shstrndx;         /* Section header string table index    */
 } Elf64_Ehdr;
 
-void print_elf_header(Elf64_Ehdr* header);
+// Program header
+typedef struct {
+  Elf64_Word	  p_type;			  /* Segment type               */
+  Elf64_Word	  p_flags;		  /* Segment flags              */
+  Elf64_Off	    p_offset;		  /* Segment file offset        */
+  Elf64_Addr	  p_vaddr;		  /* Segment virtual address    */
+  Elf64_Addr	  p_paddr;		  /* Segment physical address   */
+  Elf64_Xword	  p_filesz;		  /* Segment size in file       */
+  Elf64_Xword	  p_memsz;		  /* Segment size in memory     */
+  Elf64_Xword	  p_align;		  /* Segment alignment          */
+} Elf64_Phdr;
 
 void parse_elf_header(char* filename, Elf64_Ehdr* header);
 
-void check_elf_header(Elf64_Ehdr* header);
+int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders);
