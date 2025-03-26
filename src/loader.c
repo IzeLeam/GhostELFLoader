@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
     parse_elf_header(arguments.file, &header);
 
     Elf64_Phdr** pheaders = malloc(sizeof(Elf64_Phdr*));
-    int nb_load = parse_program_headers(arguments.file, &header, pheaders);
+    parse_program_headers(arguments.file, &header, pheaders);
 
     return 0;
 }

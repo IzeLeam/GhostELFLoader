@@ -55,4 +55,4 @@ typedef struct {
 
 void parse_elf_header(char* filename, Elf64_Ehdr* header);
 
-int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders);
+void parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders);

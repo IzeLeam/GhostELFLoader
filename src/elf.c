@@ -163,11 +163,9 @@ static void check_program_headers(Elf64_Ehdr* eheader, Elf64_Phdr** pheaders, in
  * @param eheader The ELF header structure
  * @param pheaders The program headers as buffer
  * 
- * @return The number of program headers
- * 
  * @note This function will allocate memory for the program headers
  */
-int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
+void parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
     int fd = open(filename, O_RDONLY);
     if (fd < 0) {
         dprintf(STDERR_FILENO, "Failed to open the file\n");
@@ -180,6 +178,11 @@ int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** phea
         lseek(fd, eheader->e_phoff + i * sizeof(Elf64_Phdr), SEEK_SET);
 
         Elf64_Phdr* pheader = malloc(sizeof(Elf64_Phdr));
+        if (!pheader) {
+            dprintf(STDERR_FILENO, "Failed to allocate memory\n");
+            exit(1);
+        }
+
         ssize_t size = read(fd, pheader, sizeof(Elf64_Phdr));
         if (size < 0) {
             dprintf(STDERR_FILENO, "Failed to read the file\n");
@@ -205,7 +208,5 @@ int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** phea
     close(fd);
 
     check_program_headers(eheader, pheaders, nb_load);
-
-    return nb_load;
 }
 
