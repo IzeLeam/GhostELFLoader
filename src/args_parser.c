@@ -6,7 +6,7 @@ static char doc[] = "isos_loader -- Dynamic ELF loader";
 static char args_doc[] = "FILE FUNCTION...";
 
 static struct argp_option options[] = {
-    {"verbose", 'v', 0, 0, "Verbose output"},
+    {"verbose", 'v', 0, 0, "Verbose output", 0},
     { 0 }
 };
 
@@ -38,4 +38,4 @@ error_t parse_opt(int key, char *arg, struct argp_state *state) {
     return 0;
 }
 
-struct argp argp = { options, parse_opt, args_doc, doc };
+struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
