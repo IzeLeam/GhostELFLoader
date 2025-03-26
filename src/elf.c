@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "elf.h"
+#include "args_parser.h"
 
 /**
  * Print the ELF header properties
@@ -101,6 +102,10 @@ void parse_elf_header(char* filename, Elf64_Ehdr* header) {
     }
 
     close(fd);
+
+    if (arguments.verbose) {
+        print_elf_header(header);
+    }
 
     check_elf_header(header);
 }
@@ -206,6 +211,12 @@ void parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** phe
     }
 
     close(fd);
+
+    if (arguments.verbose) {
+        for (int i = 0; i < nb_load; i++) {
+            print_program_header(pheaders[i]);
+        }
+    }
 
     check_program_headers(eheader, pheaders, nb_load);
 }

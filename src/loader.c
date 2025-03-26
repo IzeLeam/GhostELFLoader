@@ -9,8 +9,9 @@
 #include "args_parser.h"
 #include "elf.h"
 
+struct arguments_t arguments = {NULL, 0, 0, NULL};
+
 int main(int argc, char **argv) {
-    struct arguments arguments = {NULL, 0, 0, NULL};
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 

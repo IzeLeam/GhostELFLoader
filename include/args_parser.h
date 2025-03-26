@@ -2,12 +2,14 @@
 
 #include <argp.h>
 
-struct arguments {
+struct arguments_t {
     char *file;
     int verbose;
     int nb_functions;
     char **functions;
 };
+
+extern struct arguments_t arguments;
 
 extern error_t parse_opt(int key, char *arg, struct argp_state *state);
 
