@@ -48,5 +48,10 @@ int main(int argc, char **argv) {
     Elf64_Phdr** pheaders = malloc(sizeof(Elf64_Phdr*));
     parse_program_headers(arguments.file, &header, pheaders);
 
+    for (int i = 0; i < header.e_phnum; i++) {
+        free(pheaders[i]);
+    }
+    free(pheaders);
+    
     return 0;
 }

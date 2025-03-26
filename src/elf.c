@@ -199,11 +199,9 @@ void parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** phe
             continue;
         }
 
-        void* guard = pheaders;
         pheaders = realloc(pheaders, (nb_load + 1) * sizeof(Elf64_Phdr*));
         if (!pheaders) {
             dprintf(STDERR_FILENO, "Failed to allocate memory\n");
-            //free(guard);
             exit(1);
         }
 
