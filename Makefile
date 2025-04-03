@@ -22,7 +22,7 @@ BLUE=\e[1;34m
 PURPLE=\e[1;35m
 END_COLOR=\e[0m
 
-GCC_CFLAGS=-O2 -Warray-bounds -Wsequence-point -Walloc-zero -Wnull-dereference -Wpointer-arith -Wcast-qual -Wcast-align=strict
+GCC_CFLAGS=-O2 -Warray-bounds -Wsequence-point -Walloc-zero -Wnull-dereference -Wpointer-arith -Wcast-qual -Wcast-align=strict -g
 TARGET=isos_loader
 
 $(TARGET): $(OBJ_FILES)

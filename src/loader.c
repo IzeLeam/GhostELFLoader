@@ -45,13 +45,10 @@ int main(int argc, char **argv) {
     Elf64_Ehdr header;
     parse_elf_header(arguments.file, &header);
 
-    Elf64_Phdr** pheaders = malloc(sizeof(Elf64_Phdr*));
-    parse_program_headers(arguments.file, &header, pheaders);
+    Elf64_Phdr *pheaders = NULL;
+    int nb_seg = parse_program_headers(arguments.file, &header, &pheaders);
 
-    for (int i = 0; i < header.e_phnum; i++) {
-        free(pheaders[i]);
-    }
     free(pheaders);
-    
+
     return 0;
 }
