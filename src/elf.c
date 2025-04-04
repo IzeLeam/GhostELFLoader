@@ -85,23 +85,15 @@ static void check_elf_header(Elf64_Ehdr* header) {
 /**
  * Parse the ELF header of a file
  * 
- * @param filename The name of the file
+ * @param fd The file descriptor of the file
  * @param header The ELF header structure as buffer
  */
-void parse_elf_header(char* filename, Elf64_Ehdr* header) {
-    int fd = open(filename, O_RDONLY);
-    if (fd < 0) {
-        dprintf(STDERR_FILENO, "Failed to open the file\n");
-        exit(1);
-    }
-
+void parse_elf_header(int fd, Elf64_Ehdr* header) {
     ssize_t size = read(fd, header, sizeof(Elf64_Ehdr));
     if (size < 0) {
         dprintf(STDERR_FILENO, "Failed to read the file\n");
         exit(1);
     }
-
-    close(fd);
 
     if (arguments.verbose) {
         print_elf_header(header);
@@ -130,25 +122,26 @@ static void print_program_header(Elf64_Phdr* header) {
 /**
  * Verify program headers properties
  * 
+ * @param eheader The ELF header structure
  * @param pheaders The program headers to check
- * @param nb_load The number of loadable program headers
+ * @param nb_seg The number of loadable program headers
  * 
  * @note This function will exit the program if one property is invalid
  */
-static void check_program_headers(Elf64_Ehdr* eheader, Elf64_Phdr* pheaders, int nb_load) {
-    if (nb_load == 0) {
+static void check_program_headers(Elf64_Ehdr* eheader, Elf64_Phdr* pheaders, int nb_seg) {
+    if (nb_seg == 0) {
         dprintf(STDERR_FILENO, "No program header found\n");
         exit(1);
     }
 
-    // Vérifier que le premier segment LOAD couvre tous les headers du programme
+    // Assert that the first load segment is the first program header
     if (pheaders[0].p_offset >= eheader->e_phoff || pheaders[0].p_filesz < (eheader->e_phnum * sizeof(Elf64_Phdr))) {
         dprintf(STDERR_FILENO, "First load segment does not cover all program headers\n");
         exit(1);
     }
 
-    // Vérifier que les segments LOAD sont en ordre croissant et ne se chevauchent pas
-    for (int i = 1; i < nb_load; i++) {
+    // Assert that load segments are in ascending order and do not overlap each other
+    for (int i = 1; i < nb_seg; i++) {
         if (pheaders[i].p_vaddr <= pheaders[i - 1].p_vaddr) {
             dprintf(STDERR_FILENO, "Load segments are not in ascending order\n");
             exit(1);
@@ -161,9 +154,21 @@ static void check_program_headers(Elf64_Ehdr* eheader, Elf64_Phdr* pheaders, int
 }
 
 /**
+ * Compute the total size of the segments
+ * 
+ * @param pheaders The program headers
+ * @param nb_seg The number of loadable program headers
+ * 
+ * @return The total size of the segments
+ */
+int compute_total_size(Elf64_Phdr* pheaders, int nb_seg) {
+    return (pheaders)[nb_seg - 1].p_vaddr + (pheaders)[nb_seg - 1].p_memsz - (pheaders)[0].p_vaddr;
+}
+
+/**
  * Parse the program headers of a file
  * 
- * @param filename The name of the file
+ * @param fd The file descriptor of the file
  * @param eheader The ELF header structure
  * @param pheaders The program headers as buffer
  * 
@@ -171,14 +176,8 @@ static void check_program_headers(Elf64_Ehdr* eheader, Elf64_Phdr* pheaders, int
  * 
  * @note This function will allocate memory for the program headers
  */
-int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
-    int fd = open(filename, O_RDONLY);
-    if (fd < 0) {
-        dprintf(STDERR_FILENO, "Failed to open the file\n");
-        exit(1);
-    }
-
-    int nb_load = 0;
+int parse_program_headers(int fd, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
+    int nb_seg = 0;
     *pheaders = NULL;
 
     for (int i = 0; i < eheader->e_phnum; i++) {
@@ -187,7 +186,7 @@ int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** phea
         Elf64_Phdr pheader;
         ssize_t size = read(fd, &pheader, sizeof(Elf64_Phdr));
         if (size < 0) {
-            dprintf(STDERR_FILENO, "Failed to read the file\n");
+            dprintf(STDERR_FILENO, "Program parser: Failed to read the file\n");
             exit(1);
         }
 
@@ -195,25 +194,23 @@ int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** phea
             continue;
         }
 
-        Elf64_Phdr *guard = realloc(*pheaders, sizeof(Elf64_Phdr) * (nb_load + 1));
+        Elf64_Phdr *guard = realloc(*pheaders, sizeof(Elf64_Phdr) * (nb_seg + 1));
         if (!guard) {
-            dprintf(STDERR_FILENO, "Failed to allocate memory\n");
+            dprintf(STDERR_FILENO, "Program parser: Failed to allocate memory\n");
             exit(1);
         }
         *pheaders = guard;
-        (*pheaders)[nb_load] = pheader;
-        nb_load++;
+        (*pheaders)[nb_seg] = pheader;
+        nb_seg++;
     }
 
-    close(fd);
-
     if (arguments.verbose) {
-        for (int i = 0; i < nb_load; i++) {
+        for (int i = 0; i < nb_seg; i++) {
             print_program_header(&(*pheaders)[i]);
         }
     }
 
-    check_program_headers(eheader, *pheaders, nb_load);
+    check_program_headers(eheader, *pheaders, nb_seg);
 
-    return nb_load;
+    return nb_seg;
 }

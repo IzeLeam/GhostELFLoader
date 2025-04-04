@@ -17,6 +17,10 @@
 
 #define PT_LOAD     1
 
+#define PF_X		(1 << 0)	/* Segment is executable */
+#define PF_W		(1 << 1)	/* Segment is writable */
+#define PF_R		(1 << 2)	/* Segment is readable */
+
 typedef __uint16_t Elf64_Half;
 typedef __uint32_t Elf64_Word;
 typedef __uint64_t Elf64_Addr;
@@ -53,6 +57,8 @@ typedef struct {
   Elf64_Xword	  p_align;		  /* Segment alignment          */
 } Elf64_Phdr;
 
-void parse_elf_header(char* filename, Elf64_Ehdr* header);
+void parse_elf_header(int fd, Elf64_Ehdr* header);
 
-int parse_program_headers(char* filename, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders);
+int compute_total_size(Elf64_Phdr* pheaders, int nb_seg);
+
+int parse_program_headers(int fd, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders);
