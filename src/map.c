@@ -19,9 +19,6 @@ void* load_segments(int fd, Elf64_Phdr* pheaders, int nb_seg, int total_size) {
             max_vaddr = pheaders[i].p_vaddr + pheaders[i].p_memsz;
     }
 
-    // Align the inferior bound on page size
-    Elf64_Addr aligned_min_vaddr = min_vaddr - (min_vaddr % page_size);
-
     // Allocate memory for the segments
     Elf64_Addr base_address = (Elf64_Addr) mmap((void*)0x00, total_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if ((void *)base_address == MAP_FAILED) {
