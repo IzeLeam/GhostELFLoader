@@ -33,8 +33,8 @@ $(TARGET): $(OBJ_FILES)
 	@echo "$(PURPLE)Building object file $@ for file $^$(END_COLOR)"
 	gcc -I$(INCLUDE_DIR) $(GCC_CFLAGS) -o $@ -c $^
 
-lib: src/foo.c include/foo.h
-	gcc -c src/foo.c -o foo.o
+lib: lib/foo.c include/foo.h
+	gcc -c lib/foo.c -o foo.o
 	gcc -shared -nostdlib -o lib/libfoo.so foo.o
 
 clean:
