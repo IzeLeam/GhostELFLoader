@@ -20,6 +20,11 @@ int main(int argc, char **argv) {
 
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
+    if (arguments.file == NULL) {
+        dprintf(STDERR_FILENO, "No file specified\n");
+        return 1;
+    }
+
     if (arguments.verbose) {
         printf("Verbose enabled\n");
         printf("File: %s\n", arguments.file);
@@ -60,7 +65,7 @@ int main(int argc, char **argv) {
     int nb_seg = parse_program_headers(fd, &header, &pheaders);
     int total_size = compute_total_size(pheaders, nb_seg);
 
-    void* base = load_segments(fd, pheaders, nb_seg, total_size);
+    load_segments(fd, pheaders, nb_seg, total_size);
 
     close(fd);
 
