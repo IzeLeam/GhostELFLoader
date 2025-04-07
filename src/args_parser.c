@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "args_parser.h"
 
@@ -20,6 +21,10 @@ error_t parse_opt(int key, char *arg, struct argp_state *state) {
         case ARGP_KEY_ARG:
             if (state->arg_num == 0) {
                 arguments->file = arg;
+                if (!arguments->file) {
+                    dprintf(STDERR_FILENO, "File name is required\n");
+                    argp_usage(state);
+                }
             }
             else {
                 arguments->nb_functions++;

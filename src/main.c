@@ -61,7 +61,6 @@ int main(int argc, char **argv) {
     int total_size = compute_total_size(pheaders, nb_seg);
 
     void* base = load_segments(fd, pheaders, nb_seg, total_size);
-    printf("Loaded ELF at base address: %p\n", base);
 
     close(fd);
 
