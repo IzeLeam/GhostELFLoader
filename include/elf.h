@@ -16,16 +16,42 @@
 #define ELFMAG3		'F'		/* Magic number byte 3 */
 
 #define PT_LOAD     1
+#define PT_DYNAMIC  2
+
+#define DT_NULL		0		/* Marks end of dynamic array */
+#define DT_RELA		7		/* Address of Rela relocs */
+#define DT_RELASZ	8		/* Total size of Rela relocs */
 
 #define PF_X		(1 << 0)	/* Segment is executable */
 #define PF_W		(1 << 1)	/* Segment is writable */
 #define PF_R		(1 << 2)	/* Segment is readable */
+
+#define R_X86_64_RELATIVE	8	/* Adjust by program base */
+#define ELF64_R_TYPE(i)			((i) & 0xffffffff)
 
 typedef __uint16_t Elf64_Half;
 typedef __uint32_t Elf64_Word;
 typedef __uint64_t Elf64_Addr;
 typedef __uint64_t Elf64_Off;
 typedef __uint64_t Elf64_Xword;
+typedef __int64_t Elf64_Sxword;
+
+typedef struct
+{
+  Elf64_Sxword	d_tag;			/* Dynamic entry type */
+  union
+    {
+      Elf64_Xword d_val;		/* Integer value */
+      Elf64_Addr d_ptr;			/* Address value */
+    } d_un;
+} Elf64_Dyn;
+
+typedef struct
+{
+  Elf64_Addr	r_offset;		/* Address */
+  Elf64_Xword	r_info;			/* Relocation type and symbol index */
+  Elf64_Sxword	r_addend;		/* Addend */
+} Elf64_Rela;
 
 // ELF header
 typedef struct {
