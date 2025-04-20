@@ -7,6 +7,7 @@
 
 #include "elf.h"
 #include "map.h"
+#include "args_parser.h"
 
 void print_segment_contents(Elf64_Phdr* pheaders, int nb_seg, void* base_address) {
     for (int i = 0; i < nb_seg; i++) {
@@ -112,7 +113,10 @@ void* load_segments(int fd, Elf64_Phdr* pheaders, int nb_seg, int total_size) {
         }
     }
 
-    print_segment_contents(pheaders, nb_seg, (void*)base_address);
+    if (arguments.verbose) {
+        printf("Segments loaded in memory:\n");
+        print_segment_contents(pheaders, nb_seg, (void*)base_address);
+    }
 
     return (void*)base_address;
 }
