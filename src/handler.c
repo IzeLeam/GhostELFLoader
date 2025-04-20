@@ -12,7 +12,7 @@
 #include "relocation.h"
 
 void* my_dlopen(char* name) {
-    int fd = open(arguments.file, O_RDONLY);
+    int fd = open(name, O_RDONLY);
     if (fd < 0) {
         perror("Failed to open file");
         return NULL;
