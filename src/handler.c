@@ -39,7 +39,7 @@ void* my_dlopen(char* name) {
         }
     }
     if (!dynamic) {
-        fprintf(stderr, "Failed to locate PT_DYNAMIC segment.\n");
+        dprintf(STDERR_FILENO, "Failed to locate PT_DYNAMIC segment.\n");
         close(fd);
         free(pheaders);
         return NULL;
