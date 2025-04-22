@@ -36,9 +36,10 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
         Elf64_Rela *rel = &rela[i];
 
         if (ELF64_R_TYPE(rel->r_info) == R_X86_64_RELATIVE) {
-            Elf64_Addr *addr_to_relocate = (Elf64_Addr *)((uintptr_t)base_addr + rel->r_offset);
+            Elf64_Addr *addr_to_relocate = (Elf64_Addr *)((uintptr_t) base_addr + rel->r_offset);
             Elf64_Addr new_value = (Elf64_Addr)base_addr + rel->r_addend;
 
+            /*
             // Check if the address is in a read-only segment
             int is_read_only = 0;
             for (int j = 0; j < nb_seg; j++) {
@@ -61,10 +62,12 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
                     exit(1);
                 }
             }
+            */
 
             // Perform the relocation
             *addr_to_relocate = new_value;
 
+            /*
             // Restore the original permissions if modified
             if (is_read_only) {
                 void *page_start = (void *)((Elf64_Addr)addr_to_relocate & ~(sysconf(_SC_PAGESIZE) - 1));
@@ -73,6 +76,7 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
                     exit(1);
                 }
             }
+            */
 
             if (arguments.verbose) {
                 printf("Relocated [%zu]: target at %p set to 0x%lx\n", i, (void *)addr_to_relocate, *addr_to_relocate);

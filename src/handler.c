@@ -50,14 +50,13 @@ void* my_dlopen(char* name) {
 
     relocate_dynsym(base_address, dynamic, pheaders, nb_seg);
 
-    uint64_t *entry_dynsym = (uint64_t *)((uintptr_t)base_address + (header.e_entry - pheaders[0].p_vaddr));
+    uint64_t *entry_dynsym = (uint64_t *)((uintptr_t) base_address + (header.e_entry - pheaders[0].p_vaddr));
     my_symbol_t *symbols = (my_symbol_t *)*entry_dynsym;
 
     if (arguments.verbose) {
         printf("Symbols located at %p\n", symbols);
     }
 
-    // Print the symbols
     for (int i = 0; symbols[i].name != NULL; i++) {
         printf("Symbol: %s at %p\n", symbols[i].name, symbols[i].addr);
     }

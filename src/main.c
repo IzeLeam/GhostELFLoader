@@ -34,7 +34,6 @@ int main(int argc, char **argv) {
             printf("  %s\n", arguments.functions[i]);
         }
     }
-
     
     void* handle = my_dlopen(arguments.file);
     if (!handle) {

@@ -19,6 +19,8 @@ my_symbol_t symbols[] = {
     {NULL, NULL}
 };
 
+my_symbol_t* entry = symbols;
+
 /*
 const char* foo_imported() {
     import();

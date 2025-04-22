@@ -1,8 +1,8 @@
 #pragma once
 
 typedef struct {
-    char* name;
-    void* addr;
+    char *name;
+    void *addr;
 } my_symbol_t;
 
 void* my_dlopen(char* name);
