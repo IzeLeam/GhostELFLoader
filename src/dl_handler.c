@@ -5,12 +5,19 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "handler.h"
+#include "dl_handler.h"
 #include "args_parser.h"
-#include "elf.h"
-#include "map.h"
+#include "elf_parser.h"
+#include "segment_loader.h"
 #include "relocation.h"
 
+/**
+ * Implementation of the dlopen function
+ * 
+ * @param name The name of the shared library to load
+ * 
+ * @return A pointer to the loaded library in the memory, or NULL on failure
+ */
 void* my_dlopen(char* name) {
     int fd = open(name, O_RDONLY);
     if (fd < 0) {
@@ -68,6 +75,14 @@ void* my_dlopen(char* name) {
     return symbols;
 }
 
+/**
+ * Implementation of the dlsym function
+ * 
+ * @param handle The address of the shared library returned by dlopen
+ * @param func The name of the function to find
+ * 
+ * @return A pointer to the function, or NULL if not found
+ */
 void* my_dlsym(void* handle, char* func) {
     my_symbol_t *tab = (my_symbol_t *)handle;
     if (!tab) {

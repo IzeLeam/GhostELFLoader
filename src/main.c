@@ -8,12 +8,22 @@
 #include <errno.h>
 #include <dlfcn.h>
 
-#include "foo.h"
-#include "handler.h"
+#include "dl_handler.h"
 #include "args_parser.h"
-#include "elf.h"
-#include "map.h"
-#include "relocation.h"
+
+/**
+ * Imported function used in the shared library
+ */
+const char* foo_imported() {
+    return "present";
+}
+
+/**
+ * Imported function used in the shared library
+ */
+const char* bar_imported() {
+    return "present";
+}
 
 struct arguments_t arguments = {NULL, 0, 0, NULL};
 

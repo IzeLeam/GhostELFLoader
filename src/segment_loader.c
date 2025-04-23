@@ -5,10 +5,17 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "elf.h"
-#include "map.h"
+#include "elf_parser.h"
+#include "segment_loader.h"
 #include "args_parser.h"
 
+/**
+ * Print the contents of a segment in a hexdump format
+ * 
+ * @param pheaders The program headers
+ * @param nb_seg The number of program headers
+ * @param base_address The base address of the loaded segments
+ */
 void print_segment_contents(Elf64_Phdr* pheaders, int nb_seg, void* base_address) {
     for (int i = 0; i < nb_seg; i++) {
         Elf64_Phdr* ph = &pheaders[i];
@@ -52,6 +59,14 @@ void print_segment_contents(Elf64_Phdr* pheaders, int nb_seg, void* base_address
     }
 }
 
+/**
+ * Load the LOAD type segments into memory
+ * 
+ * @param fd The file descriptor of the ELF file
+ * @param pheaders The program headers
+ * @param nb_seg The number of loadable program headers
+ * @param total_size The total size of the segments
+ */
 void* load_segments(int fd, Elf64_Phdr* pheaders, int nb_seg, int total_size) {
     size_t page_size = sysconf(_SC_PAGESIZE);
 

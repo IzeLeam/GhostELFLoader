@@ -21,12 +21,14 @@
 #define DT_NULL		0		/* Marks end of dynamic array */
 #define DT_RELA		7		/* Address of Rela relocs */
 #define DT_RELASZ	8		/* Total size of Rela relocs */
+#define DT_RELACOUNT	9	/* Number of Rela relocations */
 
 #define PF_X		(1 << 0)	/* Segment is executable */
 #define PF_W		(1 << 1)	/* Segment is writable */
 #define PF_R		(1 << 2)	/* Segment is readable */
 
 #define R_X86_64_RELATIVE	8	/* Adjust by program base */
+#define R_AARCH64_RELATIVE	1027	/* Adjust by program base */
 #define ELF64_R_TYPE(i)			((i) & 0xffffffff)
 
 typedef __uint16_t Elf64_Half;

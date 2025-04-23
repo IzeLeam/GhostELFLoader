@@ -3,6 +3,7 @@
 
 #include "args_parser.h"
 
+// Arguments structure
 static char doc[] = "isos_loader -- Dynamic ELF loader";
 static char args_doc[] = "FILE FUNCTION...";
 
@@ -11,6 +12,12 @@ static struct argp_option options[] = {
     { 0 }
 };
 
+/**
+ * Option parsing using argp
+ * 
+ * @note Usage:
+ *  isos_loader [OPTION...] FILE FUNCTION...
+ */
 error_t parse_opt(int key, char *arg, struct argp_state *state) {
     struct arguments_t *arguments = state->input;
 

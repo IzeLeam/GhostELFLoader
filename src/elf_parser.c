@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <string.h>
 
-#include "elf.h"
+#include "elf_parser.h"
 #include "args_parser.h"
 
 /**
@@ -195,8 +195,6 @@ int compute_total_size(Elf64_Phdr* pheaders, int nb_seg) {
  * @param pheaders The program headers as buffer
  * 
  * @return The number of loadable program headers
- * 
- * @note This function will allocate memory for the program headers
  */
 int parse_program_headers(int fd, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
     int nb_seg = 0;
