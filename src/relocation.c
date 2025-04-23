@@ -20,7 +20,6 @@
  */
 void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, int nb_seg) {
     Elf64_Rela *rela = NULL;
-    Elf64_Xword relasz = 0;
     size_t num_rela = 0;
 
     // Get relocation informations in the dynamic section
@@ -28,9 +27,6 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
         switch (dyn->d_tag) {
             case DT_RELA:
                 rela = (Elf64_Rela *)((uintptr_t)base_addr + dyn->d_un.d_ptr);
-                break;
-            case DT_RELASZ:
-                relasz = dyn->d_un.d_val;
                 break;
             case DT_RELACOUNT:
                 num_rela = dyn->d_un.d_val;
@@ -40,7 +36,8 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
         }
     }
 
-    if (num_rela == 0) {
+    // Assert the relocation exists
+    if (!rela || num_rela == 0) {
         printf("No relocations to process.\n");
         return;
     } else if (arguments.verbose) {
