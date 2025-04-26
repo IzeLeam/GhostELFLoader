@@ -1,15 +1,16 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include <dlfcn.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-#include "dl_handler.h"
 #include "args_parser.h"
+#include "dl_handler.h"
 #include "elf_parser.h"
-#include "segment_loader.h"
+#include "isos-support.h"
 #include "relocation.h"
+#include "segment_loader.h"
 
 /**
  * Implementation of the dlopen function
@@ -94,4 +95,30 @@ void* my_dlsym(void* handle, char* func) {
         }
     }
     return NULL;
+}
+
+/**
+ * @brief The function isos_trampoline() is called by the PLT section
+ * entry for each imported symbol inside the DL library.
+*/
+void isos_trampoline();
+asm(".pushsection .text,\"ax\",\"progbits\""  "\n"
+    "isos_trampoline:"                        "\n"
+    POP_S(REG_ARG_1)                          "\n"
+    POP_S(REG_ARG_2)                          "\n"
+    PUSH_STACK_STATE                          "\n"
+    CALL(loader_plt_resolver)                 "\n"
+    POP_STACK_STATE                           "\n"
+    JMP_REG(REG_RET)                          "\n"
+    ".popsection"                             "\n");
+
+
+/**
+ * @param handler  : the loader handler returned by my_dlopen().
+ * @param import_id: the identifier of the function to be called
+ *                   from the imported symbol table.
+ * @return the address of the function to be called by the trampoline.
+*/
+void * loader_plt_resolver(void * handler, int import_id) {
+	/* TODO */
 }
