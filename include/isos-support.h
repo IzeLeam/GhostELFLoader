@@ -77,3 +77,4 @@ extern void * pltgot_entries[];
         "pltgot_" #name ":"                             "\n" \
         "." SYS_ADDR_ATTR " loadpath_" #name            "\n" \
         ".popsection"                                   "\n");
+        

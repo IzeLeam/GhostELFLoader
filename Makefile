@@ -34,7 +34,7 @@ $(TARGET): $(OBJ_FILES)
 	gcc -I$(INCLUDE_DIR) $(GCC_CFLAGS) -o $@ -c $^
 
 lib: lib/foo.c
-	gcc -Wall -Wextra -fPIC -fvisibility=hidden -c lib/foo.c -o foo.o
+	gcc -Wall -Wextra -fPIC -fvisibility=hidden -c lib/foo.c -o foo.o -Iinclude
 	gcc -nostdlib -shared -o lib/libfoo.so foo.o -e entry
 clean:
 	rm -rf src/*.o $(TARGET) lib/*.so

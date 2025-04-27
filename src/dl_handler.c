@@ -59,21 +59,28 @@ void* my_dlopen(char* name) {
     relocate_dynsym(base_address, dynamic, pheaders, nb_seg);
 
     uint64_t *entry_dynsym = (uint64_t *)((uintptr_t) base_address + (header.e_entry - pheaders[0].p_vaddr));
-    my_symbol_t *symbols = (my_symbol_t *)*entry_dynsym;
+    loader_entry_t *entry = (loader_entry_t *)*entry_dynsym;
+
+    exported_table_t *exported_symbols = entry->exported;
+    const char **imported_symbols = entry->imported;
 
     if (arguments.verbose) {
-        printf("Symbols located at %p\n", symbols);
-    }
-
-    for (int i = 0; symbols[i].name != NULL; i++) {
-        printf("Symbol: %s at %p\n", symbols[i].name, symbols[i].addr);
+        printf("Symbols located at %p\n", entry);
+        printf("Exported symbols:\n");
+        for (int i = 0; exported_symbols[i].name != NULL; i++) {
+            printf("\t- %s at %p\n", exported_symbols[i].name, exported_symbols[i].addr);
+        }
+        printf("Imported symbols:\n");
+        for (int i = 0; imported_symbols[i] != NULL; i++) {
+            printf("\t- %s\n", imported_symbols[i]);
+        }
     }
 
     close(fd);
 
     free(pheaders);
 
-    return symbols;
+    return entry;
 }
 
 /**
@@ -85,7 +92,9 @@ void* my_dlopen(char* name) {
  * @return A pointer to the function, or NULL if not found
  */
 void* my_dlsym(void* handle, char* func) {
-    my_symbol_t *tab = (my_symbol_t *)handle;
+    loader_entry_t *entry = (loader_entry_t *)handle;
+    exported_table_t *tab = entry->exported;
+
     if (!tab) {
         return NULL;
     }
@@ -119,6 +128,6 @@ asm(".pushsection .text,\"ax\",\"progbits\""  "\n"
  *                   from the imported symbol table.
  * @return the address of the function to be called by the trampoline.
 */
-void * loader_plt_resolver(void * handler, int import_id) {
-	/* TODO */
+void* loader_plt_resolver(void *handler, int import_id) {
+    // TODO
 }
