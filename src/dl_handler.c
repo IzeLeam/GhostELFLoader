@@ -106,6 +106,47 @@ void* my_dlsym(void* handle, char* func) {
     return NULL;
 }
 
+exported_table_t exported_symbols[] = {
+    {"foo_imported", foo_imported},
+    {"bar_imported", bar_imported},
+    {NULL, NULL}
+};
+
+void my_dlset_plt_resolve(void* handler) {
+    if (!handler) {
+        return;
+    }
+
+    loader_entry_t *tab = (loader_entry_t *)handler;
+    tab->plt_table = exported_symbols;
+}
+
+#define FOO_IMPORTED_ID 0
+#define BAR_IMPORTED_ID 1
+
+const char* my_imported_resolver(void* handler, int import_id) {
+    loader_entry_t *tab = (loader_entry_t *)handler;
+    const char **imported_symbols = tab->imported;
+
+    if (import_id < 0 || import_id >= 2) {
+        return NULL;
+    }
+
+    return imported_symbols[import_id];
+}
+
+void* my_plt_resolver(void* handler, const char* name) {
+    loader_entry_t *tab = (loader_entry_t *)handler;
+    exported_table_t *plt = tab->plt_table;
+
+    for (int i = 0; plt[i].name != NULL; i++) {
+        if (strcmp(plt[i].name, name) == 0) {
+            return plt[i].addr;
+        }
+    }
+    return NULL;
+}
+
 /**
  * @brief The function isos_trampoline() is called by the PLT section
  * entry for each imported symbol inside the DL library.
@@ -121,7 +162,6 @@ asm(".pushsection .text,\"ax\",\"progbits\""  "\n"
     JMP_REG(REG_RET)                          "\n"
     ".popsection"                             "\n");
 
-
 /**
  * @param handler  : the loader handler returned by my_dlopen().
  * @param import_id: the identifier of the function to be called
@@ -129,5 +169,15 @@ asm(".pushsection .text,\"ax\",\"progbits\""  "\n"
  * @return the address of the function to be called by the trampoline.
 */
 void* loader_plt_resolver(void *handler, int import_id) {
-    // TODO
+    loader_entry_t *tab = (loader_entry_t *)handler;
+    const char *imported_symbol = my_imported_resolver(handler, import_id);
+    if (!imported_symbol) {
+        return NULL;
+    }
+
+    void *imported_addr = my_plt_resolver(handler, imported_symbol);
+    if (!imported_addr) {
+        return NULL;
+    }
+    return imported_addr;
 }

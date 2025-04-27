@@ -1,4 +1,5 @@
 #include <stddef.h>
+#include "isos-support.h"
 
 /*
     Exported functions
@@ -67,3 +68,13 @@ loader_entry_t loader_entry = {
 
 // Entry point for the loader
 loader_entry_t* entry = &loader_entry;
+
+/*
+    PLT entries
+*/
+
+extern void* loader_handle;
+
+PLT_BEGIN
+PLT_ENTRY(FOO_IMPORTED_ID, foo_imported)
+PLT_ENTRY(BAR_IMPORTED_ID, bar_imported)
