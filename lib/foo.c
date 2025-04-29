@@ -19,15 +19,15 @@ const char* bar_exported() {
     Imported functions
 */
 
-extern const char* foo_imported();
-extern const char* bar_imported();
+extern const char* foo();
+extern const char* bar();
 
-const char* lib_foo_imported() {
-    return foo_imported();
+const char* foo_imported() {
+    return foo();
 }
 
-const char* lib_bar_imported() {
-    return bar_imported();
+const char* bar_imported() {
+    return bar();
 }
 
 /*
@@ -38,15 +38,15 @@ const char* lib_bar_imported() {
 exported_table_t exported_symbols[] = {
     {"foo_exported", foo_exported},
     {"bar_exported", bar_exported},
-    {"lib_foo_imported", lib_foo_imported},
-    {"lib_bar_imported", lib_bar_imported},
+    {"lib_foo_imported", foo_imported},
+    {"lib_bar_imported", bar_imported},
     {NULL, NULL}
 };
 
 // Imported symbols
 const char* imported_symbols[] = {
-    "foo_imported",
-    "bar_imported",
+    "foo",
+    "bar",
     NULL
 };
 
@@ -70,5 +70,5 @@ loader_entry_t* entry = &loader_entry;
 */
 
 PLT_BEGIN
-PLT_ENTRY(FOO_IMPORTED_ID, "foo_imported")
-PLT_ENTRY(BAR_IMPORTED_ID, "bar_imported")
+PLT_ENTRY(FOO_IMPORTED_ID, "foo")
+PLT_ENTRY(BAR_IMPORTED_ID, "bar")

@@ -172,13 +172,9 @@ void* my_dlsym(void* handle, char* func) {
 }
 
 // TODO à mettre dans le main et a placer en paramètre du my_dlset_plt_resolve
-exported_table_t imported_symbols[] = {
-    {"foo_imported", foo_imported},
-    {"bar_imported", bar_imported},
-    {NULL, NULL}
-};
 
-void my_dlset_plt_resolve(void* handler) {
+
+void my_dlset_plt_resolve(void* handler, exported_table_t imported_symbols[]) {
     if (!handler) {
         return;
     }

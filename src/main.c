@@ -14,16 +14,22 @@
 /**
  * Imported function used in the shared library
  */
-const char* foo_imported() {
+const char* foo() {
     return "present";
 }
 
 /**
  * Imported function used in the shared library
  */
-const char* bar_imported() {
+const char* bar() {
     return "present";
 }
+
+exported_table_t imported_symbols[] = {
+    {"foo_imported", foo},
+    {"bar_imported", bar},
+    {NULL, NULL}
+};
 
 struct arguments_t arguments = {NULL, 0, 0, NULL};
 
@@ -52,7 +58,7 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    my_dlset_plt_resolve(handle);
+    my_dlset_plt_resolve(handle, imported_symbols);
 
     #define FOO_IMPORTED_ID 0
     #define BAR_IMPORTED_ID 1

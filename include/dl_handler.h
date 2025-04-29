@@ -16,8 +16,8 @@ typedef struct {
     void** handle;
 } loader_entry_t;
 
-extern const char* foo_imported();
-extern const char* bar_imported();
+extern const char* foo();
+extern const char* bar();
 
 void* my_dlopen(char* name);
 
@@ -25,4 +25,4 @@ void* my_dlsym(void* handler, char* func);
 
 void* loader_plt_resolver(void *handler, int import_id);
 
-void my_dlset_plt_resolve(void* handler);
+void my_dlset_plt_resolve(void* handler, exported_table_t imported_symbols[]);
