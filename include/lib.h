@@ -15,14 +15,3 @@ typedef struct {
     void** trampoline;
     void** handle;
 } loader_entry_t;
-
-extern const char* foo_imported();
-extern const char* bar_imported();
-
-void* my_dlopen(char* name);
-
-void* my_dlsym(void* handler, char* func);
-
-void* loader_plt_resolver(void *handler, int import_id);
-
-void my_dlset_plt_resolve(void* handler);

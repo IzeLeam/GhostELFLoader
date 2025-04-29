@@ -1,14 +1,11 @@
 #include <stddef.h>
+
 #include "isos-support.h"
+#include "lib.h"
 
 /*
     Exported functions
 */
-
-typedef struct {
-    char *name;
-    void *addr;
-} exported_table_t;
 
 const char* foo_exported() {
     return "present";
@@ -21,9 +18,6 @@ const char* bar_exported() {
 /*
     Imported functions
 */
-
-#define FOO_IMPORTED_ID 0
-#define BAR_IMPORTED_ID 1
 
 extern const char* foo_imported();
 extern const char* bar_imported();
@@ -40,16 +34,12 @@ const char* lib_bar_imported() {
     Entry point for the loader
 */
 
-typedef struct {
-    exported_table_t* exported;
-    const char** imported;
-} loader_entry_t;
-
-
 // Exported symbols
 exported_table_t exported_symbols[] = {
     {"foo_exported", foo_exported},
     {"bar_exported", bar_exported},
+    {"lib_foo_imported", lib_foo_imported},
+    {"lib_bar_imported", lib_bar_imported},
     {NULL, NULL}
 };
 
@@ -60,10 +50,16 @@ const char* imported_symbols[] = {
     NULL
 };
 
+void* loader_handle = NULL;
+void* isos_trampoline = NULL;
+
 // Struct for entry point
 loader_entry_t loader_entry = {
     .exported = exported_symbols,
-    .imported = imported_symbols
+    .imported = imported_symbols,
+    .plt_table = NULL,  // This is used in the my_dlset_plt_resolve to attribute the PLT table
+    .trampoline = &isos_trampoline,
+    .handle = &loader_handle
 };
 
 // Entry point for the loader
@@ -73,8 +69,6 @@ loader_entry_t* entry = &loader_entry;
     PLT entries
 */
 
-extern void* loader_handle;
-
 PLT_BEGIN
-PLT_ENTRY(FOO_IMPORTED_ID, foo_imported)
-PLT_ENTRY(BAR_IMPORTED_ID, bar_imported)
+PLT_ENTRY(FOO_IMPORTED_ID, "foo_imported")
+PLT_ENTRY(BAR_IMPORTED_ID, "bar_imported")

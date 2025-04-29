@@ -25,13 +25,11 @@ const char* bar_imported() {
     return "present";
 }
 
-// Handler used by the loader
-void* loader_handle = NULL;
-
 struct arguments_t arguments = {NULL, 0, 0, NULL};
 
 int main(int argc, char **argv) {
 
+    arguments.functions = malloc(sizeof(char*) * (argc - 2));
     argp_parse(&argp, argc, argv, 0, 0, &arguments);
 
     if (arguments.file == NULL) {
@@ -54,28 +52,10 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    loader_handle = handle;
-
     my_dlset_plt_resolve(handle);
-    if (arguments.verbose) {
-        exported_table_t* plt = ((loader_entry_t*)handle)->plt_table;
-        printf("PLT resolver :\n");
-        for (int i = 0; plt[i].name != NULL; i++) {
-            printf("\t- %s at %p\n", plt[i].name, plt[i].addr);
-        }
-    }
 
     #define FOO_IMPORTED_ID 0
     #define BAR_IMPORTED_ID 1
-
-    void* foo = loader_plt_resolver(handle, FOO_IMPORTED_ID);
-    if (!foo) {
-        dprintf(STDERR_FILENO, "Failed to resolve foo_imported\n");
-        return 1;
-    }
-    if (arguments.verbose) {
-        printf("foo_imported() found at %p\n", foo);
-    }
 
     for (int i = 0; i < arguments.nb_functions; i++) {
         char** func = &arguments.functions[i];

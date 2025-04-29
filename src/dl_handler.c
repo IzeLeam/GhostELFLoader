@@ -12,6 +12,71 @@
 #include "relocation.h"
 #include "segment_loader.h"
 
+static void debug_loader_entry(const loader_entry_t* entry) {
+    if (!entry) {
+        printf("loader_entry_t is NULL\n");
+        return;
+    }
+
+    printf("loader_entry_t:\n");
+
+    printf("  Exported:\n");
+    if (entry->exported) {
+        for (int i = 0; entry->exported[i].name != NULL; i++) {
+            printf("    Name: %s, Addr: %p\n", entry->exported[i].name, entry->exported[i].addr);
+        }
+    } else {
+        printf("    NULL\n");
+    }
+
+    printf("  Imported:\n");
+    if (entry->imported) {
+        for (int i = 0; entry->imported[i] != NULL; i++) {
+            printf("    %s\n", entry->imported[i]);
+        }
+    } else {
+        printf("    NULL\n");
+    }
+
+    printf("  PLT Table:\n");
+    if (entry->plt_table) {
+        for (int i = 0; entry->plt_table[i].name != NULL; i++) {
+            printf("    Name: %s, Addr: %p\n", entry->plt_table[i].name, entry->plt_table[i].addr);
+        }
+    } else {
+        printf("    NULL\n");
+    }
+
+    printf("  Trampoline:\n");
+    if (entry->trampoline) {
+        printf("    %p\n", entry->trampoline);
+    } else {
+        printf("    NULL\n");
+    }
+
+    printf("  Handle:\n");
+    if (entry->handle) {
+        printf("    %p\n", entry->handle);
+    } else {
+        printf("    NULL\n");
+    }
+}
+
+/**
+ * @brief The function isos_trampoline() is called by the PLT section
+ * entry for each imported symbol inside the DL library.
+*/
+void isos_trampoline();
+asm(".pushsection .text,\"ax\",\"progbits\""  "\n"
+    "isos_trampoline:"                        "\n"
+    POP_S(REG_ARG_1)                          "\n"
+    POP_S(REG_ARG_2)                          "\n"
+    PUSH_STACK_STATE                          "\n"
+    CALL(loader_plt_resolver)                 "\n"
+    POP_STACK_STATE                           "\n"
+    JMP_REG(REG_RET)                          "\n"
+    ".popsection"                             "\n");
+
 /**
  * Implementation of the dlopen function
  * 
@@ -106,7 +171,8 @@ void* my_dlsym(void* handle, char* func) {
     return NULL;
 }
 
-exported_table_t exported_symbols[] = {
+// TODO à mettre dans le main et a placer en paramètre du my_dlset_plt_resolve
+exported_table_t imported_symbols[] = {
     {"foo_imported", foo_imported},
     {"bar_imported", bar_imported},
     {NULL, NULL}
@@ -118,11 +184,15 @@ void my_dlset_plt_resolve(void* handler) {
     }
 
     loader_entry_t *tab = (loader_entry_t *)handler;
-    tab->plt_table = exported_symbols;
-}
+    tab->plt_table = imported_symbols;
 
-#define FOO_IMPORTED_ID 0
-#define BAR_IMPORTED_ID 1
+    *(tab->trampoline) = (void (*))isos_trampoline;
+    *(tab->handle) = handler;
+
+    if (arguments.verbose) {
+        debug_loader_entry(tab);
+    }
+}
 
 const char* my_imported_resolver(void* handler, int import_id) {
     loader_entry_t *tab = (loader_entry_t *)handler;
@@ -146,21 +216,6 @@ void* my_plt_resolver(void* handler, const char* name) {
     }
     return NULL;
 }
-
-/**
- * @brief The function isos_trampoline() is called by the PLT section
- * entry for each imported symbol inside the DL library.
-*/
-void isos_trampoline();
-asm(".pushsection .text,\"ax\",\"progbits\""  "\n"
-    "isos_trampoline:"                        "\n"
-    POP_S(REG_ARG_1)                          "\n"
-    POP_S(REG_ARG_2)                          "\n"
-    PUSH_STACK_STATE                          "\n"
-    CALL(loader_plt_resolver)                 "\n"
-    POP_STACK_STATE                           "\n"
-    JMP_REG(REG_RET)                          "\n"
-    ".popsection"                             "\n");
 
 /**
  * @param handler  : the loader handler returned by my_dlopen().

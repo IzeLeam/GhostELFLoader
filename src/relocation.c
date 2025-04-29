@@ -8,6 +8,37 @@
 #include "args_parser.h"
 
 /**
+ * Find the dynamic section in the ELF file
+ * 
+ * This function locates the PT_DYNAMIC segment in the ELF file and returns its address.
+ * 
+ * @param fd The file descriptor of the ELF file
+ * @param header The ELF header
+ * @param base_address The base address of the loaded ELF file
+ * @param buffer A pointer to store the address of the dynamic section
+ */
+void find_dynamic_section(int fd, Elf64_Ehdr *header, void *base_address, Elf64_Dyn* buffer) {
+    Elf64_Dyn *dynamic = NULL;
+    for (int i = 0; i < header->e_phnum; i++) {
+        Elf64_Phdr ph;
+        lseek(fd, header->e_phoff + i * sizeof(Elf64_Phdr), SEEK_SET);
+        read(fd, &ph, sizeof(Elf64_Phdr));
+
+        if (ph.p_type == PT_DYNAMIC) {
+            dynamic = (Elf64_Dyn *)((uintptr_t)base_address + ph.p_vaddr);
+            break;
+        }
+    }
+    if (!dynamic) {
+        dprintf(STDERR_FILENO, "Failed to locate PT_DYNAMIC segment.\n");
+        return;
+    }
+    if (arguments.verbose) {
+        printf("PT_DYNAMIC segment located at %p\n", dynamic);
+    }
+}
+
+/**
  * Relocate the dynamic symbol table
  * 
  * This function processes the relocation entries in the .rela.dyn section of the ELF file.

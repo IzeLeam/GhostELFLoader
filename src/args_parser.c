@@ -31,7 +31,6 @@ error_t parse_opt(int key, char *arg, struct argp_state *state) {
             }
             else {
                 arguments->nb_functions++;
-                arguments->functions = realloc(arguments->functions, sizeof(char*) * (state->arg_num - 1));
                 arguments->functions[state->arg_num - 1] = arg;
             }
             break;
