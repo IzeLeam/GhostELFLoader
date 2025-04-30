@@ -8,6 +8,9 @@
 */
 
 const char* foo_exported() {
+    if (pltgot_entries[FOO_IMPORTED_ID] == NULL) {
+        return "not present";
+    }
     return "present";
 }
 
@@ -38,8 +41,8 @@ const char* bar_imported() {
 exported_table_t exported_symbols[] = {
     {"foo_exported", foo_exported},
     {"bar_exported", bar_exported},
-    {"lib_foo_imported", foo_imported},
-    {"lib_bar_imported", bar_imported},
+    {"foo_imported", foo_imported},
+    {"bar_imported", bar_imported},
     {NULL, NULL}
 };
 
@@ -57,9 +60,10 @@ void* isos_trampoline = NULL;
 loader_entry_t loader_entry = {
     .exported = exported_symbols,
     .imported = imported_symbols,
-    .plt_table = NULL,  // This is used in the my_dlset_plt_resolve to attribute the PLT table
+    .plt_table = NULL,  // This is only used in the my_dlset_plt_resolve to attribute the PLT table
     .trampoline = &isos_trampoline,
-    .handle = &loader_handle
+    .handle = &loader_handle,
+    .pltgot_entries = pltgot_entries
 };
 
 // Entry point for the loader
@@ -69,6 +73,6 @@ loader_entry_t* entry = &loader_entry;
     PLT entries
 */
 
-PLT_BEGIN
-PLT_ENTRY(FOO_IMPORTED_ID, "foo")
-PLT_ENTRY(BAR_IMPORTED_ID, "bar")
+BONUS_PLT_BEGIN
+BONUS_PLT_ENTRY(FOO_IMPORTED_ID, foo)
+BONUS_PLT_ENTRY(BAR_IMPORTED_ID, bar)

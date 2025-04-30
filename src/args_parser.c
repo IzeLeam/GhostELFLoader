@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 #include "args_parser.h"
 
@@ -46,3 +47,12 @@ error_t parse_opt(int key, char *arg, struct argp_state *state) {
 }
 
 struct argp argp = { options, parse_opt, args_doc, doc, 0, 0, 0 };
+
+void debug(const char *format, ...) {
+    if (arguments.verbose) {
+        va_list args;
+        va_start(args, format);
+        vfprintf(stderr, format, args);
+        va_end(args);
+    }
+}

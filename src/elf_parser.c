@@ -13,25 +13,25 @@
  * @param header The ELF header structure
  */
 static void print_elf_header(Elf64_Ehdr *header) {
-    printf("ELF header:\n");
-    printf("  Magic: ");
+    debug("ELF header:\n");
+    debug("  Magic: ");
     for (int i = 0; i < EI_NIDENT; i++) {
-        printf("%02x ", header->e_ident[i]);
+        debug("%02x ", header->e_ident[i]);
     }
-    printf("\n");
-    printf("  Type:                                 %d\n", header->e_type);
-    printf("  Machine:                              %d\n", header->e_machine);
-    printf("  Version:                              %d\n", header->e_version);
-    printf("  Entry point address:                  %lu\n", header->e_entry);
-    printf("  Start of program headers:             %lu (bytes into file)\n", header->e_phoff);
-    printf("  Start of section headers:             %lu (bytes into file)\n", header->e_shoff);
-    printf("  Flags:                                %d\n", header->e_flags);
-    printf("  Size of this header:                  %d (bytes)\n", header->e_ehsize);
-    printf("  Size of program headers:              %d (bytes)\n", header->e_phentsize);
-    printf("  Number of program headers:            %d\n", header->e_phnum);
-    printf("  Size of section headers:              %d (bytes)\n", header->e_shentsize);
-    printf("  Number of section headers:            %d\n", header->e_shnum);
-    printf("  Section header string table index:    %d\n", header->e_shstrndx);
+    debug("\n");
+    debug("  Type:                                 %d\n", header->e_type);
+    debug("  Machine:                              %d\n", header->e_machine);
+    debug("  Version:                              %d\n", header->e_version);
+    debug("  Entry point address:                  %lu\n", header->e_entry);
+    debug("  Start of program headers:             %lu (bytes into file)\n", header->e_phoff);
+    debug("  Start of section headers:             %lu (bytes into file)\n", header->e_shoff);
+    debug("  Flags:                                %d\n", header->e_flags);
+    debug("  Size of this header:                  %d (bytes)\n", header->e_ehsize);
+    debug("  Size of program headers:              %d (bytes)\n", header->e_phentsize);
+    debug("  Number of program headers:            %d\n", header->e_phnum);
+    debug("  Size of section headers:              %d (bytes)\n", header->e_shentsize);
+    debug("  Number of section headers:            %d\n", header->e_shnum);
+    debug("  Section header string table index:    %d\n", header->e_shstrndx);
 }
 
 /**
@@ -95,9 +95,7 @@ void parse_elf_header(int fd, Elf64_Ehdr* header) {
         exit(1);
     }
 
-    if (arguments.verbose) {
-        print_elf_header(header);
-    }
+    print_elf_header(header);
 
     check_elf_header(header);
 }
@@ -120,9 +118,9 @@ static void get_phdr_flags(Elf64_Word flags, char* str) {
 static void print_program_header(Elf64_Phdr* header) {
     char flags_str[4];
     get_phdr_flags(header->p_flags, flags_str);
-    printf("  %-14s 0x%016lx 0x%016lx 0x%016lx\n",
+    debug("  %-14s 0x%016lx 0x%016lx 0x%016lx\n",
            header->p_type == PT_LOAD ? "LOAD" : "UNKOWN", header->p_offset, header->p_vaddr, header->p_paddr);
-    printf("                 0x%016lx 0x%016lx  %-4s   0x%lx\n",
+    debug("                 0x%016lx 0x%016lx  %-4s   0x%lx\n",
            header->p_filesz, header->p_memsz, flags_str, header->p_align);
 }
 
@@ -133,9 +131,9 @@ static void print_program_header(Elf64_Phdr* header) {
  * @param nb_seg The number of loadable program headers
  */
 void print_program_headers(Elf64_Phdr* pheaders, int nb_seg) {
-    printf("Program header:\n");
-    printf("  Type           Offset             VirtAddr          PhysAddr\n");
-    printf("                 FileSiz           MemSiz            Flags  Align\n");
+    debug("Program header:\n");
+    debug("  Type           Offset             VirtAddr          PhysAddr\n");
+    debug("                 FileSiz           MemSiz            Flags  Align\n");
     for (int i = 0; i < nb_seg; i++) {
         print_program_header(&pheaders[i]);
     }
@@ -224,9 +222,7 @@ int parse_program_headers(int fd, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
         nb_seg++;
     }
 
-    if (arguments.verbose) {
-        print_program_headers(*pheaders, nb_seg);
-    }
+    print_program_headers(*pheaders, nb_seg);
 
     check_program_headers(eheader, *pheaders, nb_seg);
 

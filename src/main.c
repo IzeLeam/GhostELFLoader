@@ -26,8 +26,8 @@ const char* bar() {
 }
 
 exported_table_t imported_symbols[] = {
-    {"foo_imported", foo},
-    {"bar_imported", bar},
+    {"foo", foo},
+    {"bar", bar},
     {NULL, NULL}
 };
 
@@ -43,13 +43,11 @@ int main(int argc, char **argv) {
         return 1;
     }
 
-    if (arguments.verbose) {
-        printf("Verbose enabled\n");
-        printf("File: %s\n", arguments.file);
-        printf("Function(s):\n");
-        for (int i = 0; i < arguments.nb_functions; i++) {
-            printf("  %s\n", arguments.functions[i]);
-        }
+    debug("Verbose enabled\n");
+    debug("File: %s\n", arguments.file);
+    debug("Function(s):\n");
+    for (int i = 0; i < arguments.nb_functions; i++) {
+        debug("  %s\n", arguments.functions[i]);
     }
     
     void* handle = my_dlopen(arguments.file);
@@ -70,10 +68,7 @@ int main(int argc, char **argv) {
             dprintf(STDERR_FILENO, "Failed to find the %s function\n", *func);
             return 1;
         }
-        if (arguments.verbose) {
-            printf("%s() returned %s\n", *func, function());
-        }
+        printf("%s() returned %s\n", *func, function());
     }
-
     return 0;
 }

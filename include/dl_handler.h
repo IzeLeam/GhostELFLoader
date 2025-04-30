@@ -14,6 +14,7 @@ typedef struct {
     exported_table_t* plt_table;
     void** trampoline;
     void** handle;
+    void** pltgot_entries;
 } loader_entry_t;
 
 extern const char* foo();

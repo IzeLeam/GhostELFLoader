@@ -14,51 +14,51 @@
 
 static void debug_loader_entry(const loader_entry_t* entry) {
     if (!entry) {
-        printf("loader_entry_t is NULL\n");
+        debug("Loader not found\n");
         return;
     }
 
-    printf("loader_entry_t:\n");
+    debug("Loader entry:\n");
 
-    printf("  Exported:\n");
+    debug("  Exported symbols :\n");
     if (entry->exported) {
         for (int i = 0; entry->exported[i].name != NULL; i++) {
-            printf("    Name: %s, Addr: %p\n", entry->exported[i].name, entry->exported[i].addr);
+            debug("    Name: %s, Addr: %p\n", entry->exported[i].name, entry->exported[i].addr);
         }
     } else {
-        printf("    NULL\n");
+        debug("    NULL\n");
     }
 
-    printf("  Imported:\n");
+    debug("  Imported symbols:\n");
     if (entry->imported) {
         for (int i = 0; entry->imported[i] != NULL; i++) {
-            printf("    %s\n", entry->imported[i]);
+            debug("    %s\n", entry->imported[i]);
         }
     } else {
-        printf("    NULL\n");
+        debug("    NULL\n");
     }
 
-    printf("  PLT Table:\n");
+    debug("  PLT Table:\n");
     if (entry->plt_table) {
         for (int i = 0; entry->plt_table[i].name != NULL; i++) {
-            printf("    Name: %s, Addr: %p\n", entry->plt_table[i].name, entry->plt_table[i].addr);
+            debug("    Name: %s, Addr: %p\n", entry->plt_table[i].name, entry->plt_table[i].addr);
         }
     } else {
-        printf("    NULL\n");
+        debug("    NULL\n");
     }
 
-    printf("  Trampoline:\n");
+    debug("  Trampoline address:\n");
     if (entry->trampoline) {
-        printf("    %p\n", entry->trampoline);
+        debug("    %p\n", entry->trampoline);
     } else {
-        printf("    NULL\n");
+        debug("    NULL\n");
     }
 
-    printf("  Handle:\n");
+    debug("  Handle address:\n");
     if (entry->handle) {
-        printf("    %p\n", entry->handle);
+        debug("    %p\n", entry->handle);
     } else {
-        printf("    NULL\n");
+        debug("    NULL\n");
     }
 }
 
@@ -117,9 +117,8 @@ void* my_dlopen(char* name) {
         free(pheaders);
         return NULL;
     }
-    if (arguments.verbose) {
-        printf("PT_DYNAMIC segment located at %p\n", dynamic);
-    }
+    
+    debug("PT_DYNAMIC segment located at %p\n", dynamic);
 
     relocate_dynsym(base_address, dynamic, pheaders, nb_seg);
 
@@ -128,18 +127,6 @@ void* my_dlopen(char* name) {
 
     exported_table_t *exported_symbols = entry->exported;
     const char **imported_symbols = entry->imported;
-
-    if (arguments.verbose) {
-        printf("Symbols located at %p\n", entry);
-        printf("Exported symbols:\n");
-        for (int i = 0; exported_symbols[i].name != NULL; i++) {
-            printf("\t- %s at %p\n", exported_symbols[i].name, exported_symbols[i].addr);
-        }
-        printf("Imported symbols:\n");
-        for (int i = 0; imported_symbols[i] != NULL; i++) {
-            printf("\t- %s\n", imported_symbols[i]);
-        }
-    }
 
     close(fd);
 
@@ -171,9 +158,16 @@ void* my_dlsym(void* handle, char* func) {
     return NULL;
 }
 
-// TODO à mettre dans le main et a placer en paramètre du my_dlset_plt_resolve
-
-
+/**
+ * Link the the loader entry with functons and PLT table
+ * 
+ * @brief This function links the imported symbols with the PLT table and
+ * link both trampoline and the handle for the shared library to be able
+ * to call them for the resolving.
+ * 
+ * @param handler The address of the shared library returned by dlopen
+ * @param imported_symbols The imported symbols to resolve
+ */
 void my_dlset_plt_resolve(void* handler, exported_table_t imported_symbols[]) {
     if (!handler) {
         return;
@@ -185,31 +179,55 @@ void my_dlset_plt_resolve(void* handler, exported_table_t imported_symbols[]) {
     *(tab->trampoline) = (void (*))isos_trampoline;
     *(tab->handle) = handler;
 
-    if (arguments.verbose) {
-        debug_loader_entry(tab);
-    }
+    debug_loader_entry(tab);
 }
 
+/**
+ * Look for the imported symbol in the imported table by the ID
+ * 
+ * @param handler  : the loader handler returned by my_dlopen().
+ * @param import_id: the identifier of the function to be called.
+ * 
+ * @return the name of the symbol associated with the ID.
+*/
 const char* my_imported_resolver(void* handler, int import_id) {
     loader_entry_t *tab = (loader_entry_t *)handler;
     const char **imported_symbols = tab->imported;
 
-    if (import_id < 0 || import_id >= 2) {
+    int imported_count = 0;
+    while (imported_symbols[imported_count] != NULL) {
+        imported_count++;
+    }
+
+    if (import_id < 0 || import_id >= imported_count) {
         return NULL;
     }
 
     return imported_symbols[import_id];
 }
 
+/**
+ * Look for the address in the PLT table by the name
+ * 
+ * @param handler: the loader handler returned by my_dlopen().
+ * @param name    : the name of the function.
+ * 
+ * @return the address of the function associated with the name.
+*/
 void* my_plt_resolver(void* handler, const char* name) {
     loader_entry_t *tab = (loader_entry_t *)handler;
     exported_table_t *plt = tab->plt_table;
+
+    if (!plt) {
+        return NULL;
+    }
 
     for (int i = 0; plt[i].name != NULL; i++) {
         if (strcmp(plt[i].name, name) == 0) {
             return plt[i].addr;
         }
     }
+
     return NULL;
 }
 
@@ -220,15 +238,26 @@ void* my_plt_resolver(void* handler, const char* name) {
  * @return the address of the function to be called by the trampoline.
 */
 void* loader_plt_resolver(void *handler, int import_id) {
+    debug("Resolving imported symbol with ID: %d\n", import_id);
+
     loader_entry_t *tab = (loader_entry_t *)handler;
+
+    // Resolve the symbol name
     const char *imported_symbol = my_imported_resolver(handler, import_id);
     if (!imported_symbol) {
         return NULL;
     }
 
+    // Resolve the symbol address
     void *imported_addr = my_plt_resolver(handler, imported_symbol);
     if (!imported_addr) {
         return NULL;
     }
+
+    void** pltgot_entries = tab->pltgot_entries;
+
+    // Cache the resolved address in the GOT table
+    pltgot_entries[import_id] = imported_addr;
+
     return imported_addr;
 }
