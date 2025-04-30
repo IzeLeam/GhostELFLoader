@@ -5,4 +5,7 @@
 doc/
 
 lib/*.so
+lib/*.enc
+lib/encrypt
+
 isos_loader

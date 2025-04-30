@@ -48,6 +48,7 @@ static void check_elf_header(Elf64_Ehdr* header) {
         || (header->e_ident[EI_MAG2] != ELFMAG2)
         || (header->e_ident[EI_MAG3] != ELFMAG3)) {
         dprintf(STDERR_FILENO, "Invalid ELF magic number\n");
+        dprintf(STDERR_FILENO, "This library might be encrypted, if so, please provide the right key: -k <key>\n");
         exit(1);
     }
 
@@ -122,6 +123,7 @@ static void print_program_header(Elf64_Phdr* header) {
            header->p_type == PT_LOAD ? "LOAD" : "UNKOWN", header->p_offset, header->p_vaddr, header->p_paddr);
     debug("                 0x%016lx 0x%016lx  %-4s   0x%lx\n",
            header->p_filesz, header->p_memsz, flags_str, header->p_align);
+
 }
 
 /**
@@ -199,8 +201,10 @@ int parse_program_headers(int fd, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
     *pheaders = NULL;
 
     for (int i = 0; i < eheader->e_phnum; i++) {
+        // Seek to the program header offset
         lseek(fd, eheader->e_phoff + i * sizeof(Elf64_Phdr), SEEK_SET);
 
+        // Read the program header
         Elf64_Phdr pheader;
         ssize_t size = read(fd, &pheader, sizeof(Elf64_Phdr));
         if (size < 0) {
@@ -208,10 +212,12 @@ int parse_program_headers(int fd, Elf64_Ehdr* eheader, Elf64_Phdr** pheaders) {
             exit(1);
         }
 
+        // Filter only loadable segments
         if (pheader.p_type != PT_LOAD) {
             continue;
         }
 
+        // Safely allocate memory for the program headers
         Elf64_Phdr *guard = realloc(*pheaders, sizeof(Elf64_Phdr) * (nb_seg + 1));
         if (!guard) {
             dprintf(STDERR_FILENO, "Program parser: Failed to allocate memory\n");

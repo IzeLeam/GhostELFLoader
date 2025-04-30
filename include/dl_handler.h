@@ -3,7 +3,7 @@
 extern const char* foo();
 extern const char* bar();
 
-void* my_dlopen(char* name);
+void* my_dlopen(char* name, char* key);
 
 void* my_dlsym(void* handler, char* func);
 

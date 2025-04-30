@@ -10,6 +10,7 @@ static char args_doc[] = "FILE FUNCTION...";
 
 static struct argp_option options[] = {
     {"verbose", 'v', 0, 0, "Verbose output", 0},
+    {"key", 'k', "KEY", 0, "Encryption key", 0},
     { 0 }
 };
 
@@ -25,6 +26,9 @@ error_t parse_opt(int key, char *arg, struct argp_state *state) {
     switch (key) {
         case 'v':
             arguments->verbose = 1;
+            break;
+        case 'k':
+            arguments->key = arg;
             break;
         case ARGP_KEY_ARG:
             if (state->arg_num == 0) {

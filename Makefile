@@ -22,7 +22,7 @@ BLUE=\e[1;34m
 PURPLE=\e[1;35m
 END_COLOR=\e[0m
 
-GCC_CFLAGS=-O2 -Warray-bounds -Wsequence-point -Walloc-zero -Wnull-dereference -Wpointer-arith -Wcast-qual -Wcast-align=strict -g
+GCC_CFLAGS=-O2 -Warray-bounds -Wsequence-point -Walloc-zero -Wnull-dereference -Wpointer-arith -Wcast-qual -Wcast-align=strict -g -D_GNU_SOURCE
 TARGET=isos_loader
 
 $(TARGET): $(OBJ_FILES)
@@ -33,10 +33,11 @@ $(TARGET): $(OBJ_FILES)
 	@echo "$(PURPLE)Building object file $@ for file $^$(END_COLOR)"
 	gcc -I$(INCLUDE_DIR) $(GCC_CFLAGS) -o $@ -c $^
 
-lib: lib/foo.c
-	gcc -Wall -Wextra -fPIC -fvisibility=hidden -c lib/foo.c -o foo.o -Iinclude
-	gcc -nostdlib -shared -o lib/libfoo.so foo.o -e entry
+lib: lib/foo.c lib/encrypt.c
+	make -C lib
+
 clean:
-	rm -rf src/*.o $(TARGET) lib/*.so
+	rm -rf src/*.o $(TARGET)
+	make clean -C lib
 
 .PHONY: clean

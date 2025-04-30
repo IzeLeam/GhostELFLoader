@@ -70,12 +70,14 @@ void print_segment_contents(Elf64_Phdr* pheaders, int nb_seg, void* base_address
 void* load_segments(int fd, Elf64_Phdr* pheaders, int nb_seg, int total_size) {
     size_t page_size = sysconf(_SC_PAGESIZE);
 
+    fprintf(stdout, "test");
     // Allocate memory for the segments
     Elf64_Addr base_address = (Elf64_Addr) mmap((void*)0x00, total_size, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     if ((void *)base_address == MAP_FAILED) {
         perror("mmap failed");
         exit(1);
     }
+    printf("test");
 
     // Load every segment in the memory
     for (int i = 0; i < nb_seg; i++) {

@@ -1,9 +1,10 @@
-#include <dlfcn.h>
 #include <fcntl.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+
+#include <sys/mman.h>
 
 #include "main.h"
 #include "elf_parser.h"
@@ -83,17 +84,65 @@ asm(".pushsection .text,\"ax\",\"progbits\""  "\n"
     ".popsection"                             "\n");
 
 /**
+ * Decrypt the library using XOR encryption with the provided key
+ * 
+ * @param encrypted_path The path to the encrypted library
+ * @param key The encryption key
+ * 
+ * @return The file descriptor of the decrypted library
+ */
+int decrypt_library(const char *encrypted_path, const char *key) {
+    // Create a temporary file in the memory for the decrypted library
+    int decrypted_fd = memfd_create("decrypted", 0);
+    int encrypted_fd = open(encrypted_path, O_RDONLY);
+    if (encrypted_fd < 0) {
+        perror("Failed to open encrypted file");
+        return -1;
+    }
+
+    size_t key_len = strlen(key);
+    size_t i = 0;
+    char c;
+    ssize_t bytes_read;
+
+    // Read and decrypt the file byte by byte
+    while ((bytes_read = read(encrypted_fd, &c, 1)) > 0) {
+        c ^= key[i % key_len];
+        if (write(decrypted_fd, &c, 1) != 1) {
+            perror("Failed to write to decrypted file");
+            close(encrypted_fd);
+            close(decrypted_fd);
+            return -1;
+        }
+        i++;
+    }
+
+    close(encrypted_fd);
+    // Reset the file seek pointer
+    lseek(decrypted_fd, 0, SEEK_SET);
+
+    return decrypted_fd;
+}
+
+/**
  * Implementation of the dlopen function
  * 
  * @param name The name of the shared library to load
  * 
  * @return A pointer to the loaded library in the memory, or NULL on failure
  */
-void* my_dlopen(char* name) {
-    int fd = open(name, O_RDONLY);
-    if (fd < 0) {
-        perror("Failed to open file");
-        return NULL;
+void* my_dlopen(char* name, char* key) {
+
+    // Open the file depending if the file is encrypted or not
+    int fd;
+    if (!key) {
+        fd = open(name, O_RDONLY);
+        if (fd < 0) {
+            perror("Failed to open file");
+            return NULL;
+        }
+    } else {
+        fd = decrypt_library(name, key);
     }
 
     // ELF header parsing

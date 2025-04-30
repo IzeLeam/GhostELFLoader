@@ -1,19 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <fcntl.h>
 #include <unistd.h>
-#include <string.h>
-#include <sys/mman.h>
-#include <sys/stat.h>
-#include <errno.h>
-#include <dlfcn.h>
 #include <stdarg.h>
 
 #include "lib.h"
 #include "dl_handler.h"
 #include "args_parser.h"
 
-static struct arguments_t arguments = {NULL, 0, 0, NULL};
+static struct arguments_t arguments = {NULL, 0, 0, NULL, NULL};
 
 /**
  * Imported function used in the shared library
@@ -64,13 +58,16 @@ int main(int argc, char **argv) {
 
     debug("\nVerbose enabled\n");
     debug("File: %s\n", arguments.file);
+    if (arguments.key) {
+        debug("Decryption key: %s\n", arguments.key);
+    }
     debug("Function(s):\n");
     for (int i = 0; i < arguments.nb_functions; i++) {
         debug("  %s\n", arguments.functions[i]);
     }
     
     // Load the shared library
-    void* handle = my_dlopen(arguments.file);
+    void* handle = my_dlopen(arguments.file, arguments.key);
     if (!handle) {
         dprintf(STDERR_FILENO, "Failed to load the shared library\n");
         return 1;
