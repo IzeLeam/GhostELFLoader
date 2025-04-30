@@ -7,7 +7,7 @@
 
 #include "elf_parser.h"
 #include "segment_loader.h"
-#include "args_parser.h"
+#include "main.h"
 
 /**
  * Print the contents of a segment in a hexdump format
@@ -127,7 +127,7 @@ void* load_segments(int fd, Elf64_Phdr* pheaders, int nb_seg, int total_size) {
             exit(1);
         }
     }
-    
+
     print_segment_contents(pheaders, nb_seg, (void*)base_address);
 
     return (void*)base_address;
