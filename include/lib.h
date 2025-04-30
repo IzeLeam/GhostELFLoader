@@ -6,12 +6,12 @@
 typedef struct {
     char *name;
     void *addr;
-} exported_table_t;
+} symbol_entry_t;
 
 typedef struct {
-    exported_table_t* exported;
+    symbol_entry_t* exported;
     const char** imported;
-    exported_table_t* plt_table;
+    symbol_entry_t* plt_table;
     void** trampoline;
     void** handle;
     void** pltgot_entries;

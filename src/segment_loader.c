@@ -1,9 +1,9 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/mman.h>
-#include <ctype.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include "elf_parser.h"
 #include "segment_loader.h"
@@ -20,41 +20,41 @@ void print_segment_contents(Elf64_Phdr* pheaders, int nb_seg, void* base_address
     for (int i = 0; i < nb_seg; i++) {
         Elf64_Phdr* ph = &pheaders[i];
 
-        // On ignore les segments vides
-        if (ph->p_memsz == 0)
+        if (ph->p_memsz == 0) {
             continue;
+        }
 
         Elf64_Addr segment_vaddr = ph->p_vaddr + (Elf64_Addr)base_address;
         size_t segment_memsz = ph->p_memsz;
 
-        printf("\nSegment %d (vaddr=0x%lx, size=0x%lx, real address=0x%lx):\n", 
+        debug("\nSegment %d (vaddr=0x%lx, size=0x%lx, real address=0x%lx):\n", 
                i, ph->p_vaddr, segment_memsz, segment_vaddr);
 
-        // Lire le segment en mémoire et l'afficher en hexdump
+        // Print the contents of the segment
         unsigned char* segment_data = (unsigned char*) segment_vaddr;
         for (size_t j = 0; j < segment_memsz; j += 16) {
-            // Adresse relative
-            printf("  %08lx  ", ph->p_vaddr + j);
+            // Relative address
+            debug("  %08lx  ", ph->p_vaddr + j);
 
-            // Partie hexadécimale
+            // Hexadecimal part
             for (size_t k = 0; k < 16; k++) {
                 if (j + k < segment_memsz)
-                    printf("%02x ", segment_data[j + k]);
+                    debug("%02x ", segment_data[j + k]);
                 else
-                    printf("   ");
+                    debug("   ");
             }
 
-            // Séparateur
-            printf(" ");
+            // Separator
+            debug(" ");
 
-            // Partie ASCII
+            // ASCII part
             for (size_t k = 0; k < 16; k++) {
                 if (j + k < segment_memsz) {
                     char c = segment_data[j + k];
                     printf("%c", isprint(c) ? c : '.');
                 }
             }
-            printf("\n");
+            debug("\n");
         }
     }
 }
@@ -127,11 +127,8 @@ void* load_segments(int fd, Elf64_Phdr* pheaders, int nb_seg, int total_size) {
             exit(1);
         }
     }
-
-    if (arguments.verbose) {
-        printf("Segments loaded in memory:\n");
-        print_segment_contents(pheaders, nb_seg, (void*)base_address);
-    }
+    
+    print_segment_contents(pheaders, nb_seg, (void*)base_address);
 
     return (void*)base_address;
 }

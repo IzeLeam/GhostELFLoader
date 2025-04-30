@@ -5,20 +5,25 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "args_parser.h"
-#include "dl_handler.h"
+#include "main.h"
 #include "elf_parser.h"
 #include "isos-support.h"
 #include "relocation.h"
 #include "segment_loader.h"
+#include "lib.h"
 
+/**
+ * Debug function to print the loader entry
+ * 
+ * @param entry The loader entry to print
+ */
 static void debug_loader_entry(const loader_entry_t* entry) {
     if (!entry) {
         debug("Loader not found\n");
         return;
     }
 
-    debug("Loader entry:\n");
+    debug("\nLoader entry:\n");
 
     debug("  Exported symbols :\n");
     if (entry->exported) {
@@ -91,15 +96,19 @@ void* my_dlopen(char* name) {
         return NULL;
     }
 
+    // ELF header parsing
     Elf64_Ehdr header;
     parse_elf_header(fd, &header);
 
+    // Program header parsing
     Elf64_Phdr *pheaders = NULL;
     int nb_seg = parse_program_headers(fd, &header, &pheaders);
     int total_size = compute_total_size(pheaders, nb_seg);
 
+    // Load the segments into memory
     void* base_address = load_segments(fd, pheaders, nb_seg, total_size);
 
+    // Find the dynamic section
     Elf64_Dyn *dynamic = NULL;
     for (int i = 0; i < header.e_phnum; i++) {
         Elf64_Phdr ph;
@@ -118,18 +127,14 @@ void* my_dlopen(char* name) {
         return NULL;
     }
     
-    debug("PT_DYNAMIC segment located at %p\n", dynamic);
-
+    // Relocate the dynamic symbol table
     relocate_dynsym(base_address, dynamic, pheaders, nb_seg);
 
+    // Get the handler address by using the entry point
     uint64_t *entry_dynsym = (uint64_t *)((uintptr_t) base_address + (header.e_entry - pheaders[0].p_vaddr));
     loader_entry_t *entry = (loader_entry_t *)*entry_dynsym;
 
-    exported_table_t *exported_symbols = entry->exported;
-    const char **imported_symbols = entry->imported;
-
     close(fd);
-
     free(pheaders);
 
     return entry;
@@ -145,11 +150,13 @@ void* my_dlopen(char* name) {
  */
 void* my_dlsym(void* handle, char* func) {
     loader_entry_t *entry = (loader_entry_t *)handle;
-    exported_table_t *tab = entry->exported;
+    symbol_entry_t *tab = entry->exported;
 
     if (!tab) {
         return NULL;
     }
+
+    // Return the address of the function by comparing the name
     for (int i = 0; tab[i].name != NULL; i++) {
         if (strcmp(tab[i].name, func) == 0) {
             return tab[i].addr;
@@ -168,14 +175,17 @@ void* my_dlsym(void* handle, char* func) {
  * @param handler The address of the shared library returned by dlopen
  * @param imported_symbols The imported symbols to resolve
  */
-void my_dlset_plt_resolve(void* handler, exported_table_t imported_symbols[]) {
+void my_dlset_plt_resolve(void* handler, symbol_entry_t imported_symbols[]) {
     if (!handler) {
         return;
     }
 
     loader_entry_t *tab = (loader_entry_t *)handler;
+
+    // Save the imported symbols in the loader entry
     tab->plt_table = imported_symbols;
 
+    // Load function addresses for the shared librarys
     *(tab->trampoline) = (void (*))isos_trampoline;
     *(tab->handle) = handler;
 
@@ -190,15 +200,15 @@ void my_dlset_plt_resolve(void* handler, exported_table_t imported_symbols[]) {
  * 
  * @return the name of the symbol associated with the ID.
 */
-const char* my_imported_resolver(void* handler, int import_id) {
+static const char* resolve_imported_symbol_by_id(void* handler, int import_id) {
     loader_entry_t *tab = (loader_entry_t *)handler;
     const char **imported_symbols = tab->imported;
 
+    // Check if the ID is valid
     int imported_count = 0;
     while (imported_symbols[imported_count] != NULL) {
         imported_count++;
     }
-
     if (import_id < 0 || import_id >= imported_count) {
         return NULL;
     }
@@ -207,16 +217,16 @@ const char* my_imported_resolver(void* handler, int import_id) {
 }
 
 /**
- * Look for the address in the PLT table by the name
+ * Resolve the address of a function in the PLT table by its name
  * 
  * @param handler: the loader handler returned by my_dlopen().
  * @param name    : the name of the function.
  * 
  * @return the address of the function associated with the name.
 */
-void* my_plt_resolver(void* handler, const char* name) {
+static void* resolve_function_in_plt(void* handler, const char* name) {
     loader_entry_t *tab = (loader_entry_t *)handler;
-    exported_table_t *plt = tab->plt_table;
+    symbol_entry_t *plt = tab->plt_table;
 
     if (!plt) {
         return NULL;
@@ -243,20 +253,19 @@ void* loader_plt_resolver(void *handler, int import_id) {
     loader_entry_t *tab = (loader_entry_t *)handler;
 
     // Resolve the symbol name
-    const char *imported_symbol = my_imported_resolver(handler, import_id);
+    const char *imported_symbol = resolve_imported_symbol_by_id(handler, import_id);
     if (!imported_symbol) {
         return NULL;
     }
 
     // Resolve the symbol address
-    void *imported_addr = my_plt_resolver(handler, imported_symbol);
+    void *imported_addr = resolve_function_in_plt(handler, imported_symbol);
     if (!imported_addr) {
         return NULL;
     }
 
-    void** pltgot_entries = tab->pltgot_entries;
-
     // Cache the resolved address in the GOT table
+    void** pltgot_entries = tab->pltgot_entries;
     pltgot_entries[import_id] = imported_addr;
 
     return imported_addr;

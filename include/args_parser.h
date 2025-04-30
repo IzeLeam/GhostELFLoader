@@ -9,10 +9,6 @@ struct arguments_t {
     char **functions;
 };
 
-extern struct arguments_t arguments;
-
 extern error_t parse_opt(int key, char *arg, struct argp_state *state);
 
 extern struct argp argp;
-
-extern void debug(const char *format, ...);

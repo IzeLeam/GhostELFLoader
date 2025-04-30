@@ -5,38 +5,7 @@
 #include <stdint.h>
 
 #include "elf_parser.h"
-#include "args_parser.h"
-
-/**
- * Find the dynamic section in the ELF file
- * 
- * This function locates the PT_DYNAMIC segment in the ELF file and returns its address.
- * 
- * @param fd The file descriptor of the ELF file
- * @param header The ELF header
- * @param base_address The base address of the loaded ELF file
- * @param buffer A pointer to store the address of the dynamic section
- */
-void find_dynamic_section(int fd, Elf64_Ehdr *header, void *base_address, Elf64_Dyn* buffer) {
-    Elf64_Dyn *dynamic = NULL;
-    for (int i = 0; i < header->e_phnum; i++) {
-        Elf64_Phdr ph;
-        lseek(fd, header->e_phoff + i * sizeof(Elf64_Phdr), SEEK_SET);
-        read(fd, &ph, sizeof(Elf64_Phdr));
-
-        if (ph.p_type == PT_DYNAMIC) {
-            dynamic = (Elf64_Dyn *)((uintptr_t)base_address + ph.p_vaddr);
-            break;
-        }
-    }
-    if (!dynamic) {
-        dprintf(STDERR_FILENO, "Failed to locate PT_DYNAMIC segment.\n");
-        return;
-    }
-    if (arguments.verbose) {
-        printf("PT_DYNAMIC segment located at %p\n", dynamic);
-    }
-}
+#include "main.h"
 
 /**
  * Relocate the dynamic symbol table
@@ -69,12 +38,11 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
 
     // Assert the relocation exists
     if (!rela || num_rela == 0) {
-        printf("No relocations to process.\n");
+        dprintf(STDERR_FILENO, "No relocations to process.\n");
         return;
-    } else if (arguments.verbose) {
-        printf("%zu relocations to process.\n", num_rela);
     }
 
+    debug("\nRelocation:\n");
     for (size_t i = 0; i < num_rela; i++) {
         Elf64_Rela *rel = &rela[i];
 
@@ -99,9 +67,7 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
                         if (ph->p_flags & PF_R) prot |= PROT_READ;
                         if (ph->p_flags & PF_W) prot |= PROT_WRITE;
                         if (ph->p_flags & PF_X) prot |= PROT_EXEC;
-                        if (arguments.verbose) {
-                            printf("Relocation in read-only segment: %p\n", addr_to_relocate);
-                        }
+                        debug("Relocation in read-only segment: %p\n", addr_to_relocate);
                     }
                     break;
                 }
@@ -128,9 +94,7 @@ void relocate_dynsym(void *base_addr, Elf64_Dyn *dynamic, Elf64_Phdr *pheaders, 
                 }
             }
 
-            if (arguments.verbose) {
-                printf("Relocated [%zu]: target at %p set to 0x%lx\n", i, (void *)addr_to_relocate, *addr_to_relocate);
-            }
+            debug("  [%2zu] target at %p set to 0x%lx\n", i, (void *)addr_to_relocate, *addr_to_relocate);
         }
     }
 }

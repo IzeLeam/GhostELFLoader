@@ -38,7 +38,7 @@ const char* bar_imported() {
 */
 
 // Exported symbols
-exported_table_t exported_symbols[] = {
+symbol_entry_t exported_symbols[] = {
     {"foo_exported", foo_exported},
     {"bar_exported", bar_exported},
     {"foo_imported", foo_imported},

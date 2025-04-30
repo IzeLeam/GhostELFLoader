@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "elf_parser.h"
-#include "args_parser.h"
+#include "main.h"
 
 /**
  * Print the ELF header properties
@@ -13,7 +13,7 @@
  * @param header The ELF header structure
  */
 static void print_elf_header(Elf64_Ehdr *header) {
-    debug("ELF header:\n");
+    debug("\nELF header:\n");
     debug("  Magic: ");
     for (int i = 0; i < EI_NIDENT; i++) {
         debug("%02x ", header->e_ident[i]);
@@ -131,7 +131,7 @@ static void print_program_header(Elf64_Phdr* header) {
  * @param nb_seg The number of loadable program headers
  */
 void print_program_headers(Elf64_Phdr* pheaders, int nb_seg) {
-    debug("Program header:\n");
+    debug("\nProgram header:\n");
     debug("  Type           Offset             VirtAddr          PhysAddr\n");
     debug("                 FileSiz           MemSiz            Flags  Align\n");
     for (int i = 0; i < nb_seg; i++) {
