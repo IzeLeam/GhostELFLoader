@@ -1,11 +1,14 @@
+#ifndef _GNU_SOURCE
+    #define _GNU_SOURCE
+#endif
 #include <stdlib.h>
 #include <stdio.h>
-#include <sys/mman.h>
 #include <unistd.h>
 #include <stdint.h>
+#include <sys/mman.h>
 
 #include "elf_parser.h"
-#include "main.h"
+#include "debug.h"
 
 /**
  * Relocate the dynamic symbol table

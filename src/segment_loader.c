@@ -1,13 +1,16 @@
+#ifndef _GNU_SOURCE
+    #define _GNU_SOURCE
+#endif
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
 #include <unistd.h>
+#include <sys/mman.h>
 
 #include "elf_parser.h"
 #include "segment_loader.h"
-#include "main.h"
+#include "debug.h"
 
 /**
  * Print the contents of a segment in a hexdump format

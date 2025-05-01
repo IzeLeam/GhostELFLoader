@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "elf_parser.h"
-#include "main.h"
+#include "debug.h"
 
 /**
  * Print the ELF header properties
