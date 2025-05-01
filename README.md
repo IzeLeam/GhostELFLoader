@@ -106,7 +106,7 @@ See the [LICENSE](./LICENSE) file for full details.
 
 ## 🙏 Acknowledgments
 
-Special thanks to the project referents whose resources and insights helped bring this project to life.
+Special thanks to the project supervisors whose resources and insights helped bring this project to life.
 
 > 🧠 **Disclaimer:** This project is intended for **educational and research purposes only**.  
 > Do not use these techniques for malicious purposes.
