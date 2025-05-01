@@ -69,5 +69,9 @@ int main(int argc, char **argv) {
         }
         printf("%s() returned %s\n", *func, function());
     }
+
+    // Free the arguments
+    free_arguments(arguments);
+
     return 0;
 }

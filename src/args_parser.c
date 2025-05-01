@@ -42,13 +42,24 @@ static error_t parse_opt(int key, char *arg, struct argp_state *state) {
 
 struct arguments_t* parse_arguments(int argc, char **argv) {
     struct arguments_t *arguments = malloc(sizeof(struct arguments_t));
+    if (!arguments) {
+        perror("Failed to allocate memory for arguments");
+        exit(1);
+    }
+
     arguments->functions = malloc(sizeof(char*) * (argc - 2));
+    if (!arguments->functions) {
+        perror("Failed to allocate memory for functions");
+        free(arguments);
+        exit(1);
+    }
+    
     arguments->verbose = 0;
     arguments->file = NULL;
     arguments->key = NULL;
     arguments->nb_functions = 0;
 
-    struct argp argp = { options, parse_opt, args_doc, doc };
+    struct argp argp = { options, parse_opt, args_doc, doc, NULL, NULL, NULL };
     argp_parse(&argp, argc, argv, 0, 0, arguments);
 
     return arguments;

@@ -58,10 +58,9 @@ int decrypt_library(const char *encrypted_path, const char *key) {
     size_t key_len = strlen(key);
     size_t i = 0;
     char c;
-    ssize_t bytes_read;
 
     // Read and decrypt the file byte by byte
-    while ((bytes_read = read(encrypted_fd, &c, 1)) > 0) {
+    while (read(encrypted_fd, &c, 1) > 0) {
         c ^= key[i % key_len];
         if (write(decrypted_fd, &c, 1) != 1) {
             perror("Failed to write to decrypted file");
