@@ -249,6 +249,9 @@ static void* resolve_function_in_plt(void* handler, const char* name) {
 }
 
 /**
+ * Resolve the address of a function in the PLT table by its ID
+ * and cache it in the GOT table
+ * 
  * @param handler  : the loader handler returned by my_dlopen().
  * @param import_id: the identifier of the function to be called
  *                   from the imported symbol table.
