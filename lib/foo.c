@@ -8,9 +8,6 @@
 */
 
 const char* foo_exported() {
-    if (pltgot_entries[FOO_IMPORTED_ID] == NULL) {
-        return "not present";
-    }
     return "present";
 }
 
