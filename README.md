@@ -1,6 +1,6 @@
-# ISOS Loader — Dynamic ELF loader for offensive security research
+# Dynamic ELF loader
 
-**ISOS Loader** is a research-focused dynamic ELF loader implemented to support controlled experimentation in low-level offensive security techniques, in-memory payload handling and anti-analysis evaluation. The repository is designed as a lab platform for red-team/blue-team exercises, defensive research and academic study under strict, authorized conditions.
+**Dynamic ELF loader** is a research-focused dynamic ELF loader implemented to support controlled experimentation in low-level offensive security techniques, in-memory payload handling and anti-analysis evaluation. The repository is designed as a lab platform for red-team/blue-team exercises, defensive research and academic study under strict, authorized conditions.
 
 ## Purpose
 
@@ -14,7 +14,7 @@ This project provides a safe, auditable environment to study behaviors related t
 
 ## Overview
 
-ISOS Loader implements mechanisms to materialize and execute protected shared objects in memory while minimizing persistent artifacts. The design emphasizes modularity, observability and reproducibility for research purposes.
+Dynamic ELF loader implements mechanisms to materialize and execute protected shared objects in memory while minimizing persistent artifacts. The design emphasizes modularity, observability and reproducibility for research purposes.
 
 Core research themes:
 
@@ -45,15 +45,6 @@ Core research themes:
 
   * Clear separation between parsing, mapping, relocation, resolution and execution to facilitate unit testing and targeted experiments.
 
-## Intended research scenarios
-
-ISOS Loader is a laboratory tool intended to support the following scenarios:
-
-* Authorized red-team exercises where actions are monitored and constrained by rules of engagement.
-* Blue-team detection research to benchmark host and network sensors against in-memory techniques.
-* Academic studies of loader internals and mitigation effectiveness.
-* Forensic research to design techniques that detect or reconstruct in-memory-only payload execution.
-
 ## Build & test (high level)
 
 The repository includes a conventional build system and a test harness designed for safe execution in an isolated environment. Recommended high-level steps:
@@ -70,14 +61,6 @@ Do not run experiments on production systems or without explicit authorization f
 * Maintain thorough documentation of experiments and retain logs for post-exercise analysis.
 * Avoid deployment on production infrastructure or third-party systems.
 * The maintainer disclaims responsibility for malicious use; contributors must follow the project safety policy.
-
-## Contributing & governance
-
-Contributions are welcome under the following rules:
-
-* All contributions must include a clear purpose statement and test cases demonstrating intended behavior in an isolated environment.
-* Pull requests touching sensitive capabilities must include risk assessment and mitigation notes.
-* The maintainers reserve the right to reject changes that increase misuse risk without sufficient safeguards.
 
 ## License
 
