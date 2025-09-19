@@ -1,67 +1,73 @@
-# Dynamic ELF loader
+# GhostELF - Dynamic ELF Loader
 
-**Dynamic ELF loader** is a research-focused dynamic ELF loader implemented to support controlled experimentation in low-level offensive security techniques, in-memory payload handling and anti-analysis evaluation. The repository is designed as a lab platform for red-team/blue-team exercises, defensive research and academic study under strict, authorized conditions.
+Design of a dynamic ELF loader enabling the encrypted injection of a shared library into an ELF file, followed by the invisible execution of this code.
 
-## Purpose
+GhostELF is a custom dynamic ELF loader for offensive security research. It demonstrates controlled in-memory loading and execution of shared libraries, including runtime decryption, symbol resolution, and stealth techniques that avoid leaving decrypted artifacts on disk.
 
-This project provides a safe, auditable environment to study behaviors related to runtime loading, symbol resolution and protected in-memory execution of shared objects. Its primary goals are:
-
-* To enable reproducible experiments that measure detection surface and mitigation effectiveness;
-* To provide a modular framework for testing loader internals and alternative symbol resolution mechanisms;
-* To support the development and evaluation of defensive countermeasures against in-memory-only threats.
-
-> **Warning:** Use only in isolated, authorized testbeds. This project is not intended for malicious activities.
+> This project is intended solely for educational and research purposes within authorized environments. Users must ensure compliance with all relevant laws, regulations and ethical guidelines. The authors disclaim any responsibility for misuse or unintended consequences arising from the use of this software.
 
 ## Overview
 
-Dynamic ELF loader implements mechanisms to materialize and execute protected shared objects in memory while minimizing persistent artifacts. The design emphasizes modularity, observability and reproducibility for research purposes.
+GhostELF implements the following capabilities:
 
-Core research themes:
+- Manual ELF parsing and program segment mapping
+- Correct memory protections per segment and relocation handling
+- Custom PLT/GOT for symbol resolution and caching without `ld.so`
+- Runtime decryption of shared objects into anonymous memory
+- No plaintext `.so` persisted on disk during execution
+- Verbose diagnostics for step-by-step tracing
 
-* ELF internals and segment mapping
-* Relocation and runtime linking behaviors
-* Alternative PLT/GOT strategies and symbol caching
-* Interactions between in-memory payloads and endpoint detection tools
+## Architecture
 
-## Key capabilities
+1. Encryption stage: a shared object is encrypted with a symmetric XOR key.
+2. Load stage: the encrypted payload is decrypted directly into memory and never written to disk.
+3. Relocation and resolution: ELF segments are mapped, relocations applied, and symbols resolved via a custom PLT/GOT.
+4. Invocation: exported functions are located and invoked based on CLI arguments.
 
-* **Manual ELF handling (research grade)**
+## Quick start
 
-  * Inspect and map ELF headers and segments; apply appropriate memory protections and relocations without relying on the system dynamic linker.
+Build targets are defined by the project `Makefile` in the repository root and `lib/Makefile`.
 
-* **Custom symbol resolution & caching**
+### Encrypt a shared library
+```bash
+./encrypt lib/libfoo.so lib/libfoo.so.enc "my_secret_key"
+```
 
-  * Experiment with PLT/GOT semantics and caching strategies to measure performance and tracing implications for monitoring systems.
+### Run the loader against the encrypted library
+```bash
+./isos_loader -k "my_secret_key" lib/libfoo.so.enc foo_exported bar_exported
+```
 
-* **Protected in-memory payload workflow (research abstraction)**
+### Enable verbose output
+```bash
+./isos_loader -v -k "my_secret_key" lib/libfoo.so.enc foo_exported bar_exported
+```
 
-  * Support a workflow where payloads are stored encrypted at rest and materialized only within controlled memory regions for execution, to study detection and forensic implications.
+Notes:
+- The binaries `encrypt` and `isos_loader` are produced by the provided Makefiles.
+- Function names (`foo_exported`, etc.) must exist in the target shared object.
 
-* **Instrumentation and telemetry**
+## Implementation details
 
-  * Provide hooks for logging, tracing and sandboxed execution to compare observable behaviors across configurations.
+- ELF: Parses headers, program headers, and maps PT_LOAD segments with appropriate `PROT_*` flags.
+- Relocations: Handles common relocation types for supported architectures (see `include/arch/`).
+- Symbol resolution: Maintains a custom GOT; first resolution goes via a resolver, subsequent calls hit the cached address.
+- In-memory payload: Decryption occurs into an anonymous file descriptor ; the plaintext never touches disk.
 
-* **Modular architecture**
+## Limitations
 
-  * Clear separation between parsing, mapping, relocation, resolution and execution to facilitate unit testing and targeted experiments.
+- XOR encryption is for demonstration only and provides minimal cryptographic strength.
+- Supported relocation types and architectures are limited to those implemented in `include/arch/` and `src/`.
+- Requires Linux with support for `memfd_create()` and standard ELF semantics.
 
-## Build & test (high level)
+## Legal and ethical notice
 
-The repository includes a conventional build system and a test harness designed for safe execution in an isolated environment. Recommended high-level steps:
-
-1. Prepare an isolated test environment (VM or container) with a minimal toolchain and network isolation.
-2. Build the project using the provided build scripts and toolchain instructions.
-3. Run unit and integration tests that exercise loader components under controlled inputs and validate observable artifacts.
-
-Do not run experiments on production systems or without explicit authorization from system owners.
-
-## Security and ethical considerations
-
-* Use exclusively in isolated, consensual testbeds with clear rules of engagement.
-* Maintain thorough documentation of experiments and retain logs for post-exercise analysis.
-* Avoid deployment on production infrastructure or third-party systems.
-* The maintainer disclaims responsibility for malicious use; contributors must follow the project safety policy.
+This software is provided for research and educational use in environments where you have explicit permission. You are responsible for complying with applicable laws and agreements. The authors and contributors disclaim liability for misuse.
 
 ## License
 
-This project is distributed under the MIT License. See `LICENSE` for details.
+This project is licensed under the MIT License. See the `LICENSE` file for details.
+
+## Acknowledgments
+
+Thanks to the project referents and the broader security research community for insights informing this work.
